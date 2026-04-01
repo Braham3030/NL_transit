@@ -1,0 +1,23 @@
+---
+import '../pages/components/styles.css';
+import LeafletMap from '../pages/components/leafletAPI.astro';
+import MapPanel from '../pages/components/mapPanel.astro';
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<link rel="icon" href="/favicon.ico" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+	</head>
+	<body>
+		<header>
+			<h1>NL transit</h1>
+		</header>
+		<LeafletMap />
+		<MapPanel />
+	</body>
+</html>
