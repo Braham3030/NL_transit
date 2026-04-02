@@ -38,7 +38,7 @@ console.log('Leaflet API component loaded');
             fadeAnimation: true,
             zoomAnimation: true,
             markerZoomAnimation: true
-        }).setView([initialCoords.lat, initialCoords.lon], 12);
+        }).locate({setView: true, maxZoom: 16});
 
         myRenderer = L.canvas({ padding: 0.5 });
 
