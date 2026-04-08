@@ -55,6 +55,66 @@ import Route from './Route.astro';
         });
     });
 
+    let isDragging = false;
+    let startX = 0;
+    let startLeft = 0;
+
+    ul?.addEventListener("pointerdown", (e) => {
+        isDragging = true;
+        startX = e.clientX;
+
+        const currentLeft = ul.style.getPropertyValue("--bg-left");
+        startLeft = parseFloat(currentLeft) || startActive.offsetLeft;
+
+        ul.classList.add("dragging");
+        ul.classList.remove("glowBox");
+
+        // Browser keeps following the pointer even if it goes outside the element
+        ul.setPointerCapture(e.pointerId);
+    });
+
+    ul?.addEventListener("pointermove", (e) => {
+        if (!isDragging) return;
+
+        const deltaX = e.clientX - startX;
+        let newLeft = startLeft + deltaX;
+
+        const firstLeft = navItems[0].offsetLeft;
+        const lastLeft = navItems[navItems.length - 1].offsetLeft;
+        if (newLeft < firstLeft) newLeft = firstLeft;
+        if (newLeft > lastLeft) newLeft = lastLeft;
+
+
+        ul.style.setProperty("--bg-left", `${newLeft}px`);
+    });
+
+    ul?.addEventListener("pointerup", (e) => {
+        if (!isDragging) return;
+        isDragging = false;
+        ul.classList.remove("dragging");
+        ul.releasePointerCapture(e.pointerId);
+
+        const currentLeft = parseFloat(ul.style.getPropertyValue("--bg-left")) || 0;
+        let closestItem = navItems[0];
+        let minDiff = Infinity;
+        
+        navItems.forEach(item => {
+            const diff = Math.abs(currentLeft - item.offsetLeft);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestItem = item;
+            }
+        });
+
+        navItems.forEach(i => i.classList.remove("active"));
+        closestItem.classList.add("active");
+        moveBackground(closestItem);
+
+        setTimeout(() => {
+            ul?.classList.add("glowBox");
+        }, 800);
+    });
+
     // document.querySelector("#time")?.addEventListener("click", () => {
     //     fetch("/api/time")
     //         .then(response => response.json())
@@ -82,6 +142,9 @@ import Route from './Route.astro';
             padding: 0;
             position: relative;
             z-index: 1;
+            /* Prevents browser from horizontal scroll */
+            touch-action: pan-y;
+            cursor: grab;
 
             transition: left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
 
@@ -104,11 +167,20 @@ import Route from './Route.astro';
                 animation: navBackgroundGlow 0.8s ease-in-out forwards;
             }
 
+            &.dragging {
+                cursor: grabbing;
+            }
+
+            &.dragging::before {
+                transition: none !important;
+            }
+
             > li {
                 list-style-type: none;
                 padding: 1em 2em;
                 font-size: 20px;
                 border-radius: 8px;
+                user-select: none;
 
                 &.active {
                     color: black;
