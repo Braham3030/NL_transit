@@ -1,0 +1,71 @@
+---
+import Navigation from './Navigation.astro';
+---
+
+<div id="bottomPanel" class="panelBox">
+    <span id="panelHandle"></span>
+    <h2>Panel</h2>
+    <Navigation />
+</div>
+
+<script>
+    const panel = document.getElementById("bottomPanel");
+    const handle = document.getElementById("panelHandle");
+
+    handle?.addEventListener("click", () => {
+        if (!panel) return;
+
+        panel?.classList.toggle("open");
+    })
+
+
+    let isOpen = false;
+
+    const togglePanel = () => {
+        isOpen = !isOpen;
+    }
+
+    togglePanel();
+
+</script>
+
+<style>
+    .panelBox {
+        z-index: 11111;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        flex-direction: column;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100vw;
+        height: 20vh;
+        background-color: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(2px);
+        border-radius: 12px 12px 0 0;
+
+        margin: 0;
+        padding: 0;
+
+        transition: height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+    }
+
+    .panelBox.open {
+        height: 80vh;
+        background-color: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(8px);
+
+    }
+
+    span {
+        margin: 0.1em 0em;
+        width: 6em;
+        height: 0.8em;
+        background-color: rgba(0, 0, 0, 0.8);
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        position: fixed;
+    }
+    
+</style>

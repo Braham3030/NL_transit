@@ -1,0 +1,113 @@
+---
+// @ts-nocheck
+import Time from './Time.astro';
+import Route from './Route.astro';
+---
+
+<nav>
+    <ul>
+        <li class="nav-item active">
+            <Time />
+        </li>
+        <li class="nav-item">
+            <Route />
+        </li>
+    </ul>
+</nav>
+
+<div id="time-result"></div>
+<div id="routes-result"></div>
+
+<script>
+    // @ts-nocheck
+    const navItems = document.querySelectorAll(".nav-item");
+    const ul = document.querySelector("nav > ul");
+
+    const moveBackground = (activeItem) => {
+        if (!activeItem || !ul) return;
+
+        const left = activeItem.offsetLeft;
+        const width = activeItem.offsetWidth;
+
+        ul.style.setProperty("--bg-left", `${left}px`);
+        ul.style.setProperty("--bg-width", `${width}px`);
+    }
+
+    const startActive = document.querySelector(".nav-item.active");
+    moveBackground(startActive);
+
+    navItems.forEach(item => {
+        item.addEventListener("click", () => {
+            navItems.forEach(i => i.classList.remove("active"));
+            item.classList.add("active");
+
+            moveBackground(item);
+        });
+    });
+
+    // document.querySelector("#time")?.addEventListener("click", () => {
+    //     fetch("/api/time")
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             document.querySelector("#time-result").innerHTML = JSON.stringify(data);
+    //         });
+    // });
+</script>
+
+<style>
+    nav {
+        /* background-color: rgba(0, 0, 0, 0.5); */
+        border-radius: 12px;
+        width: 90%;
+        margin: 0 auto;
+
+        > ul {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: row;
+            gap: 2em;
+            overflow: hidden;
+
+            margin: 0;
+            padding: 0;
+            position: relative;
+            z-index: 1;
+
+            transition: left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+            &::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: var(--bg-left, 0);
+                width: var(--bg-width, 0);
+                height: 100%;
+                background-color: rgba(29, 29, 29, 0.3);
+                border-radius: 32px;
+                z-index: -1;
+                /* transition: left 0.3s ease, width 0.3s ease; */
+                transition: left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+            }
+
+            > li {
+                list-style-type: none;
+                padding: 1em 2em;
+                font-size: 20px;
+                border-radius: 8px;
+
+                &.active {
+                    color: black;
+                }
+                
+
+                > button {
+                    border: none;
+                    background: none;
+                    color: inherit;
+                    font-size: inherit;
+                }
+            }
+        }
+    }
+</style>

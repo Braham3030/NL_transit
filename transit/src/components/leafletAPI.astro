@@ -1,15 +1,17 @@
 ---
+// @ts-nocheck
 import 'leaflet/dist/leaflet.css';
 console.log('Leaflet API component loaded');
 ---
 
-<div id="map">Leaflet MAP</div>
+<div id="map" style="width: 100%; height: 100vh; z-index: 1;">Leaflet MAP</div>
 
 
 <script>
+    // @ts-nocheck
     import L from 'leaflet';
     let map;
-    let mapElement;
+    // let mapElement;
     let myRenderer;
 
     let markerLayers;
@@ -20,7 +22,7 @@ console.log('Leaflet API component loaded');
 
     function setupMap() {
 
-        if(map) {
+        if (map) {
             map.off();
             map.remove();
         }
@@ -52,9 +54,18 @@ console.log('Leaflet API component loaded');
 
         setTimeout(() => {
             map.invalidateSize();
-        }, 1000);
+        }, 100);
     }
 
     document.addEventListener('DOMContentLoaded', setupMap);
-    document.addEventListener('astro:load', setupMap);
+    document.addEventListener('astro:page-load', setupMap);
 </script>
+
+
+<style is:global>
+    .leaflet-top {
+        margin-top: 65vh !important;
+        margin-left: 85vw !important;
+        transform: scale(1.5);
+    }
+</style>

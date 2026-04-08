@@ -33,30 +33,4 @@ body {
         width: 100vw;
         height: 100vh;
     }
-
-    > .panelBox {
-        z-index: 11111;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        flex-direction: column;
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100vw;
-        height: 20vh;
-        background-color: rgba(255, 255, 255, 0.8);
-
-        margin: 0;
-        padding: 0;
-
-        > span {
-            margin: 0;
-            width: 6em;
-            height: 0.8em;
-            background-color: rgba(0, 0, 0, 0.8);
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-    }
 }
