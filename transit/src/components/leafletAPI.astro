@@ -4,7 +4,9 @@ import 'leaflet/dist/leaflet.css';
 console.log('Leaflet API component loaded');
 ---
 
-<div id="map" style="width: 100%; height: 100vh; z-index: 1;">Leaflet MAP</div>
+<div id="map" style="width: 100%; height: 100vh; z-index: 1;">
+    <div class="loading"></div>
+</div>
 
 
 <script>
@@ -68,4 +70,79 @@ console.log('Leaflet API component loaded');
         margin-left: 85vw !important;
         transform: scale(1.5);
     }
+
+    .leaflet-bar {
+        border: none !important;
+        background-color: rgba(0, 0, 0, 0.1) !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+        border-radius: 12px !important;
+        overflow: hidden !important;
+    }
+
+    .leaflet-control-zoom a {
+        width: 30px !important;
+        height: 30px !important;
+        line-height: 30px !important;
+        font-size: 24px !important;
+        background-color: rgba(0, 0, 0, 0.2) !important;
+        backdrop-filter: blur(0.5px) !important;
+        color: black !important;
+
+        transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+        &:active {
+            background-color: rgba(0, 0, 0, 0.6) !important;
+            transform: scale(0.85) !important;
+        }
+    }
+
+    .leaflet-control-zoom-in {
+        border-bottom: 0.1px solid rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .leaflet-control-zoom-out {
+        border-top: 0.1px solid rgba(0, 0, 0, 0.3) !important;
+    }
+</style>
+
+<style>
+    /* https://css-loaders.com/dots-bars/ */
+
+#map {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading {
+  width: 40px;
+  aspect-ratio: 1;
+  --c: linear-gradient(#000 0 0);
+  --r1: radial-gradient(farthest-side at bottom,#000 93%,#0000);
+  --r2: radial-gradient(farthest-side at top   ,#000 93%,#0000);
+  background: 
+    var(--c) ,var(--r1),var(--r2),
+    var(--c) ,var(--r1),var(--r2),
+    var(--c) ,var(--r1),var(--r2);
+  background-repeat: no-repeat;
+  animation: l2 1s infinite alternate;
+}
+@keyframes l2 {
+  0%,25% {
+    background-size: 8px 0,8px 4px,8px 4px,8px 0,8px 4px,8px 4px,8px 0,8px 4px,8px 4px;
+    background-position: 0 50%,0 calc(50% - 2px),0 calc(50% + 2px),50% 50%,50% calc(50% - 2px),50% calc(50% + 2px),100% 50%,100% calc(50% - 2px),100% calc(50% + 2px);
+ }
+ 50% {
+    background-size: 8px 100%,8px 4px,8px 4px,8px 0,8px 4px,8px 4px,8px 0,8px 4px,8px 4px;
+    background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(50% - 2px),50% calc(50% + 2px),100% 50%,100% calc(50% - 2px),100% calc(50% + 2px);
+ }
+ 75% {
+    background-size: 8px 100%,8px 4px,8px 4px,8px 100%,8px 4px,8px 4px,8px 0,8px 4px,8px 4px;
+    background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(0% - 2px),50% calc(100% + 2px),100% 50%,100% calc(50% - 2px),100% calc(50% + 2px);
+ }
+ 95%,100% {
+    background-size: 8px 100%,8px 4px, 8px 4px,8px 100%,8px 4px,8px 4px,8px 100%,8px 4px,8px 4px;
+    background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(0% - 2px),50% calc(100% + 2px),100% 50%,100% calc(0% - 2px),100% calc(100% + 2px);
+ }
+}
 </style>

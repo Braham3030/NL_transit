@@ -36,12 +36,22 @@ import Route from './Route.astro';
     const startActive = document.querySelector(".nav-item.active");
     moveBackground(startActive);
 
+    setTimeout(() => {
+        ul?.classList.add("glowBox");
+    }, 800);
+
     navItems.forEach(item => {
         item.addEventListener("click", () => {
+            ul?.classList.remove("glowBox");
+
             navItems.forEach(i => i.classList.remove("active"));
             item.classList.add("active");
 
             moveBackground(item);
+
+            setTimeout(() => {
+                ul?.classList.add("glowBox");
+            }, 800);
         });
     });
 
@@ -67,7 +77,6 @@ import Route from './Route.astro';
             justify-content: center;
             flex-direction: row;
             gap: 2em;
-            overflow: hidden;
 
             margin: 0;
             padding: 0;
@@ -88,6 +97,11 @@ import Route from './Route.astro';
                 z-index: -1;
                 /* transition: left 0.3s ease, width 0.3s ease; */
                 transition: left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+            }
+
+            &.glowBox::before {
+                animation: navBackgroundGlow 0.8s ease-in-out forwards;
             }
 
             > li {
@@ -108,6 +122,16 @@ import Route from './Route.astro';
                     font-size: inherit;
                 }
             }
+        }
+    }
+
+
+    @keyframes navBackgroundGlow {
+        0% {
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        100% {
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
         }
     }
 </style>
