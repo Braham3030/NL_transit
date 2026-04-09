@@ -62,7 +62,10 @@ Idëeen voor dag 3:
 vandaag heb ik gewerkt aan het ophalen van de api. ik ben begonnen met de statische data. hierbij heb ik allereerst de data opgehaald van alle haltes in Nederland. Echter kampte ik met een provleem dat de files die OVApi bevat allemaal "txt" bestanden zinn. dese zijn niet goed te gebruiken, omdat er json nodig is om de data om te setten naar bruikbare informatie. Dit probleem heb ik ook aan gemini AI voorgelegd en zo samen geprobeerd op te lossen. gemini bracht mij wel op het goede pad, maar faalde erin dit goed en stabiel op te vangen. ik heb veel foutmeldingen erdoor gesien en op moeten lossen. 
 
 Ik heb bijvoorbeeld geprobeerd om de "txt" file via de xode om te zetten naar een "json" bestand. dit werkte exhter niet goed voor mij.
-Hierna heb ik het geprobeerd door de "txt" data om te zetten met een converter. Dit heeft ook niet goed geholpen, omdat het de data als "txt" behield en alleen de 
+Hierna heb ik het geprobeerd door de "txt" data om te zetten met een converter. Dit heeft ook niet goed geholpen, omdat het de data als "txt" behield en alleen de naam veranderd naar "json". 
+Om dit uiteindelijk wel recht te krijgen heb ik de "txt" file in excel gezet. Deze file is er vervolgens zo in verwerkt dat het beter leesbaar wordt als "csv" file. Vervolgens de excel opgeslagen als "csv" en weer de converter ermee gedaan. Hier werkte de converter wel goed mee. Ik heb hierbij hulp gekregen van kerr, wij hebben samen naar de foutmeldingen gekeken en naar de "txt' bestand. De "txt' bestand is eigenlijk een "csv" bestand verpakt in een "txt" formaat.
+
+
 
 ## Bronnen
 
@@ -74,3 +77,10 @@ Hierna heb ik het geprobeerd door de "txt" data om te zetten met een converter. 
 
 ### CSS loading animations
 [css-loader](https://css-loaders.com/dots-bars/)
+
+## File type converter
+[txt_to_json](https://convertmcpack.net)
+[csv_to_json](https://csvjson.com)
+
+## AI usage
+[Gemini_static_api_error](https://gemini.google.com/share/1037ffcae5ab)
