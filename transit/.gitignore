@@ -22,3 +22,10 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+
+# big data files
+src/data/stops.txt
+src/data/routes.txt
+src/data/trips.txt
+src/data/shapes.txt
