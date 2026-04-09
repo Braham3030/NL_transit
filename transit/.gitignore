@@ -25,7 +25,8 @@ pnpm-debug.log*
 
 
 # big data files
-src/data/stops.txt
-src/data/routes.txt
-src/data/trips.txt
-src/data/shapes.txt
+public/data/stops.txt
+public/data/routes.txt
+public/data/trips.txt
+public/data/shapes.txt
+public/data/stops1.json

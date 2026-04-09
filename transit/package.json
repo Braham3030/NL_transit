@@ -14,10 +14,13 @@
   "dependencies": {
     "@astrojs/node": "^10.0.4",
     "@types/node": "^25.5.2",
+    "all": "^0.0.0",
     "astro": "^6.1.2",
+    "chain": "^0.4.2",
     "csv-parse": "^6.2.1",
     "fs": "^0.0.1-security",
     "leaflet": "^1.9.4",
+    "parser": "^0.1.4",
     "path": "^0.12.7"
   }
 }

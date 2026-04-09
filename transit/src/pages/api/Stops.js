@@ -1,37 +1,57 @@
 
-import fs from 'fs';
-import path from 'path';
-import { parse } from 'csv-parse/sync';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 
-export async function GET() {
-    const filePath = path.resolve(process.cwd(), 'src/data/stops.txt');
+export async function GET({ request }) {
 
+    const url = new URL(request.url);
+    const minLat = parseFloat(url.searchParams.get('minLat'));
+    const maxLat = parseFloat(url.searchParams.get('maxLat'));
+    const minLon = parseFloat(url.searchParams.get('minLon'));
+    const maxLon = parseFloat(url.searchParams.get('maxLon'));
+    
     try {
-        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        const filePath = path.resolve('public/data/stops1.json');
+        const fileContents = await fs.readFile(filePath, 'utf-8');
+        // const allStops = fileContents.JSON;
 
-        const records = parse(fileContent, {
-            columns: true,
-            skip_empty_lines: true
-        });
+        console.log(fileContents);
+        // const response = await fetch(filePath);
 
-        const stops = records.slice(0, 100).map((stop) => ({
-            id: stop.stop_id,
-            name: stop.stop_name,
-            lat: parseFloat(stop.stop_lat),
-            lon: parseFloat(stop.stop_lon)
-        }));
+        let filteredStops = fileContents;
 
-        return new Response(JSON.stringify(stops), {
+        if (!isNaN(minLat) && !isNaN(maxLat) && !isNaN(minLon) && !isNaN(maxLon)) {
+            filteredStops = allStops.filter(stop => {
+                return stop.lat >= minLat && stop.lat <= maxLat && stop.lon >= minLon && stop.lon <= maxLon;
+            });
+        }
+
+        return new Response(JSON.stringify(filteredStops), {
             status: 200,
             headers: { 'Content-Type': 'application/json' }
         });
 
-} catch (error) {
-    return new Response(JSON.stringify({ error: 'Failed to read stops data'}), 
-{ status: 500 });
-}
-}
+        // if (!response.ok) {
+        //     throw new Error(`HTTP error! status: ${response.status}`);
+        // }
 
+        // const stopData = await response.json();
 
-// Use of gemini to fetch and use the .txt files
-// https://gemini.google.com/share/88040d0d5586
+        // stopData.forEach (stopData => {
+        //     if (stopData.lat && stopData.lon) {
+        //         L.marker([stopData.lat, stopData.lon]).addTo(map)
+        //             .bindPopup('<b>${stopData.name}</b>')
+        //             .addTo(map);
+        //     }
+        // });
+        // console.log(stopData.length);
+    } catch (error) {
+    
+        
+        return new Response(JSON.stringify("error"), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+    }
+}
