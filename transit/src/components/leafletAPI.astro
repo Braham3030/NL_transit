@@ -29,6 +29,16 @@ console.log('Leaflet API component loaded');
 
     console.log('Initializing Leaflet map...');
 
+    async function transitLiveLocations() {
+        try {
+            const res = await fetch('/api/TransitLocation');
+            const data = await res.json();
+            console.log('Transit live locations data:', data);
+        } catch (error) {
+            console.error('Error fetching transit live locations:', error);
+        }
+    } 
+
     async function stopsInView() {
         if (!map) return;
 
@@ -48,8 +58,8 @@ console.log('Leaflet API component loaded');
     
 
         // With this apiUrl, the backend will filter the stops based on the view on the map
-    const apiUrl = `/api/Stops?minLat=${minLat}&maxLat=${maxLat}&minLon=${minLon}&maxLon=${maxLon}`;
-    // const apiUrl = `/api/Stops`;
+    // const apiUrl = `/api/Stops?minLat=${minLat}&maxLat=${maxLat}&minLon=${minLon}&maxLon=${maxLon}`;
+    const apiUrl = `/api/Stops`;
     const response = await fetch(apiUrl)
     const data = await response.json();
     console.log("dataaaaa", data);
