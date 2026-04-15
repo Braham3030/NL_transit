@@ -11,7 +11,7 @@ export async function GET({ request }) {
     const maxLon = parseFloat(url.searchParams.get('maxLon'));
     
     try {
-        const filePath = path.resolve('public/data/stops1.json');
+        const filePath = path.resolve('public/data/stopsNorthHolland.json');
         const fileContents = await fs.readFile(filePath, 'utf-8');
         // const allStops = fileContents.JSON;
 
