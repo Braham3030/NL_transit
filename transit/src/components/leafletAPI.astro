@@ -173,8 +173,10 @@ console.log('Leaflet API component loaded');
             maxZoom: 19,
         }).addTo(map);
 
+        // markerClusters options:
+        // https://github.com/Leaflet/Leaflet.markercluster/blob/master/src/MarkerClusterGroup.js
         markerClusters = L.markerClusterGroup({
-            chunkedLoading: true
+            chunkedLoading: true,
         })
         map.addLayer(markerClusters);
 
