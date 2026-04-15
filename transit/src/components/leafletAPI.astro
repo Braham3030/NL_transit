@@ -12,11 +12,18 @@ console.log('Leaflet API component loaded');
 <script>
     // @ts-nocheck
     import L from 'leaflet';
+
+    // MarkerCluster plugin for Leaflet
+    // https://leafletjs.com/2012/08/20/guest-post-markerclusterer-0-1-released.html
+    import 'leaflet.markercluster';
+    import 'leaflet.markercluster/dist/MarkerCluster.css';
+    import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
     let map;
     // let mapElement;
     let myRenderer;
 
-    let markerLayers;
+    // let markerLayers;
+    let markerClusters;
 
     let initialCoords = { lat: 52.370216, lon: 4.895168 }; // Amsterdam coordinates
 
@@ -40,8 +47,9 @@ console.log('Leaflet API component loaded');
         const maxLon = bounds.getEast();
     
 
-    // const apiUrl = `/api/Stops?minLat=${minLat}&maxLat=${maxLat}&minLon=${minLon}&maxLon=${maxLon}`;
-    const apiUrl = `/api/Stops`;
+        // With this apiUrl, the backend will filter the stops based on the view on the map
+    const apiUrl = `/api/Stops?minLat=${minLat}&maxLat=${maxLat}&minLon=${minLon}&maxLon=${maxLon}`;
+    // const apiUrl = `/api/Stops`;
     const response = await fetch(apiUrl)
     const data = await response.json();
     console.log("dataaaaa", data);
@@ -49,7 +57,6 @@ console.log('Leaflet API component loaded');
 
     try {
         
-
         if (!response.ok) {
             const errorText = await response.json();
             console.error('API error:', response.status, errorText);
@@ -59,14 +66,28 @@ console.log('Leaflet API component loaded');
         // const data = await response.json();
         console.log(`Received ${data.length} stops in view`);
 
-        markerLayers.clearLayers();
+        markerClusters.clearLayers();
 
-        const stop = Array.isArray(data) ? data : (data && data.stops) || []; // Handle both array and single object responses
+        const stopArray = Array.isArray(data) ? data : (data && data.stops) || []; // Handle both array and single object responses
 
-        if (Array.isArray(data)) {
-        data.forEach(stop => {
-            const marker = L.circleMarker([stop.lat, stop.lon], {
-                radius: 5,
+        if (stopArray.length > 0) {
+            const markersToAdd = [];
+        stopArray.forEach(stop => {
+
+            const rawLat = stop.stop_lat || stop.lat || stop.latitude;
+            const rawLon = stop.stop_lon || stop.lon || stop.longitude;
+            const rawName = stop.stop_name || stop.name || "unknown stop";
+            const id = stop.stop_id || stop.id || `NO ID`;
+            const code = stop.stop_code || stop.code || ``;
+
+            // Force lat/lon to be numbers in case they are strings
+            const lat = parseFloat(rawLat);
+            const lon = parseFloat(rawLon);
+
+            if (!isNaN(lat) && !isNaN(lon)) {
+            const marker = L.circleMarker([lat, lon], {
+            // let markers = new L.markerClusterGroup([lat, lon], {
+                radius: 10,
                 fillColor: '#3388ff',
                 color: '#fff',
                 weight: 1,
@@ -74,9 +95,14 @@ console.log('Leaflet API component loaded');
                 fillOpacity: 0.8,
                 renderer: myRenderer
             })
-            .addTo(markerLayers);
-            marker.bindPopup(`<b>${stop.name}</b><br>Stop ID: ${stop.id}`);
+            // map.addLayer(markers);
+            marker.bindPopup(`<b>${rawName || "Unknown stops"}</b><br>Stop name: ${code}`);
+            markersToAdd.push(marker);
+        } else {
+            console.error(`Invalid coordinates for stop ID ${id}: lat=${lat}, lon=${lon}`);
+        }
         });
+        markerClusters.addLayers(markersToAdd);
     } else {
         console.log('Array expected but got:', data);
     }
@@ -147,7 +173,10 @@ console.log('Leaflet API component loaded');
             maxZoom: 19,
         }).addTo(map);
 
-        markerLayers = L.layerGroup().addTo(map);
+        markerClusters = L.markerClusterGroup({
+            chunkedLoading: true
+        })
+        map.addLayer(markerClusters);
 
         map.on('moveend', stopsInView);
 

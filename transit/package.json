@@ -20,6 +20,7 @@
     "csv-parse": "^6.2.1",
     "fs": "^0.0.1-security",
     "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3",
     "parser": "^0.1.4",
     "path": "^0.12.7"
   }

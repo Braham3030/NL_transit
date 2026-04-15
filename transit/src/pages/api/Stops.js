@@ -13,16 +13,16 @@ export async function GET({ request }) {
     try {
         const filePath = path.resolve('public/data/stopsNorthHolland.json');
         const fileContents = await fs.readFile(filePath, 'utf-8');
-        // const allStops = fileContents.JSON;
+        const allStops = JSON.parse(fileContents);
 
         console.log(fileContents);
         // const response = await fetch(filePath);
 
-        let filteredStops = fileContents;
+        let filteredStops = allStops;
 
         if (!isNaN(minLat) && !isNaN(maxLat) && !isNaN(minLon) && !isNaN(maxLon)) {
             filteredStops = allStops.filter(stop => {
-                return stop.lat >= minLat && stop.lat <= maxLat && stop.lon >= minLon && stop.lon <= maxLon;
+                return stop.stop_lat >= minLat && stop.stop_lat <= maxLat && stop.stop_lon >= minLon && stop.stop_lon <= maxLon;
             });
         }
 
@@ -46,7 +46,7 @@ export async function GET({ request }) {
         // });
         // console.log(stopData.length);
     } catch (error) {
-    
+        console.error('Error fetching or processing stops data:', error);
         
         return new Response(JSON.stringify("error"), {
             status: 400,
