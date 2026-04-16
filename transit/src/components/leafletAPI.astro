@@ -422,6 +422,9 @@ console.log('Leaflet API component loaded');
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
         border-radius: 12px !important;
         overflow: hidden !important;
+        transform: translateX(100px) scale(0);
+
+        animation: slideOutZoom 0.5s cubic-bezier(0.33, 0.72, 0, 1.18) forwards 0.8s;
     }
 
     .leaflet-control-zoom a {
@@ -510,6 +513,19 @@ console.log('Leaflet API component loaded');
         }
     }
 }
+
+
+    @keyframes slideOutZoom {
+        0% {
+            opacity: 0;
+            transform: translateX(100px) scale(0);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+
 
 
     @keyframes slideOutPopup {
