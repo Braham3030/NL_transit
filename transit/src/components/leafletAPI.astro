@@ -81,7 +81,8 @@ console.log('Leaflet API component loaded');
                         longName: 'Unknown route',
                         routeId: routeId,
                         routeColor: '#000000',
-                        routeTextColor: '#ffffff'
+                        routeTextColor: '#ffffff',
+                        agencyId: location.agencyId || 'Unknown agency'
                     }
                     const marker = L.circleMarker([lat, lon], {
                         // With the items below, the live location can be customized 
@@ -97,9 +98,11 @@ console.log('Leaflet API component loaded');
                     // html popup binding
                     marker.bindPopup(`
                     <div class="livePopupContainer" style="background-color: ${routeInfo.routeColor}">
-                        <h3>Live location for line ${routeInfo.shortName}</h3>
+                        <h3 style="color: ${routeInfo.routeTextColor}">Live location for line ${routeInfo.shortName}</h3>
                         <ul>
-                            <li>Route ID: ${routeInfo.routeId}</li>
+                            <li style="color: ${routeInfo.routeTextColor}"><b>Provider:</b> ${routeInfo.agencyId}</li>
+                            <li style="color: ${routeInfo.routeTextColor}"><b>Route name:</b> ${routeInfo.longName}</li>
+                            
                         </ul>
                     </div>
                     `)
@@ -232,7 +235,8 @@ console.log('Leaflet API component loaded');
                     longName: route.route_long_name,
                     routeId: route.route_id,
                     routeColor: '#' + route.route_color || '#000000',
-                    routeTextColor: '#' + route.route_text_color || '#ffffff'
+                    routeTextColor: '#' + route.route_text_color || '#ffffff',
+                    agencyId: route.agency_id || 'Unknown agency'
             }});
             };
             console.log('Routes data:', routeArray);
@@ -445,11 +449,15 @@ console.log('Leaflet API component loaded');
         border-top: 0.1px solid rgba(0, 0, 0, 0.3) !important;
     }
 
+    /* https://stackoverflow.com/questions/12606141/how-would-i-customise-the-look-and-feel-of-the-leaflet-popup */
     .leaflet-popup-content-wrapper {
         background-color: transparent !important;
         box-shadow: none !important;
-        width: 20em !important;
+        width: fit-content !important;
         height: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 18px !important;
     }
 
     .leaflet-popup-content-wrapper .leaflet-popup-content {
@@ -501,24 +509,16 @@ console.log('Leaflet API component loaded');
  }
 }
 
+/* ------ POPUP STYLING ------ */
+
 .livePopupContainer {
     display: flex;
-    align-items: flex-start;
-    justify-content: flex-start;
+    align-items: center;
+    justify-content: center;
     width: 100%;
+    margin: 0;
+    padding: 0;
     border-radius: 18px;
-    border: 5px solid red;
-    z-index: 9999;
-
-    > ul {
-        list-style-type: none;
-        padding: 0;
-        margin: 0;
-
-        > li {
-            list-style-type: none;
-            border: 2px solid green;
-        }
-    }
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 </style>
