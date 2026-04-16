@@ -23,17 +23,73 @@ console.log('Leaflet API component loaded');
     let myRenderer;
 
     // let markerLayers;
-    let markerClusters;
+    // let markerClusters;
+    let stopsClusters;
+    let liveClusters;
 
     let initialCoords = { lat: 52.370216, lon: 4.895168 }; // Amsterdam coordinates
 
     console.log('Initializing Leaflet map...');
 
     async function transitLiveLocations() {
+
+            const liveLocationApi = '/api/TransitLocation';
+            
         try {
-            const res = await fetch('/api/TransitLocation');
-            const data = await res.json();
-            console.log('Transit live locations data:', data);
+            const responseLive = await fetch(liveLocationApi);
+
+            // if (responseLive.status === 429) {
+            //     console.error('Rate limit exceeded for transit live locations API');
+            //     return new Response(JSON.stringify({ error: 'Rate limit exceeded for transit live locations API' }), {
+            //         status: 200,
+            //         headers: { 'Content-Type': 'application/json' }
+            //     });
+            // }
+
+            if (!responseLive.ok) {
+                const errorTextLive = await responseLive.json();
+                console.error('API error:', responseLive.status, errorTextLive);
+                return;
+            }
+
+            const dataLive = await responseLive.json();
+
+            console.log('Transit live locations data:', dataLive);
+            console.log(`Fetching transit live locations from API: ${liveLocationApi}`);
+
+            liveClusters.clearLayers();
+
+            const liveArray = Array.isArray(dataLive) ? dataLive : (dataLive && dataLive.vehicles) || [];
+
+            const liveMarkersToAdd = [];
+
+            liveArray.forEach(location => {
+
+                // Parsefloat is used to ensure the lat and lon are used as numbers
+                const lat = parseFloat(location.latitude);
+                const lon = parseFloat(location.longitude);
+
+                if (!isNaN(lat) && !isNaN(lon)) {
+                    const marker = L.circleMarker([lat, lon], {
+                        // With the items below, the live location can be customized 
+                        radius: 8,
+                        fillColor: '#ff5733',
+                        color: '#fff',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.9,
+                        renderer: myRenderer
+                    })
+
+                    // html popup binding
+                    marker.bindPopup(`Live location`)
+                    // liveMarkersToAdd.push(marker);
+                    liveClusters.addLayer(marker);
+                }
+            });
+
+            // liveClusters.addLayers(liveMarkersToAdd);
+
         } catch (error) {
             console.error('Error fetching transit live locations:', error);
         }
@@ -51,6 +107,7 @@ console.log('Leaflet API component loaded');
             return;
         }
 
+        // getBounds returns an object to get the boundaries of the current map view.
         const minLat = bounds.getSouth();
         const maxLat = bounds.getNorth();
         const minLon = bounds.getWest();
@@ -76,7 +133,7 @@ console.log('Leaflet API component loaded');
         // const data = await response.json();
         console.log(`Received ${data.length} stops in view`);
 
-        markerClusters.clearLayers();
+        stopsClusters.clearLayers();
 
         const stopArray = Array.isArray(data) ? data : (data && data.stops) || []; // Handle both array and single object responses
 
@@ -112,7 +169,7 @@ console.log('Leaflet API component loaded');
             console.error(`Invalid coordinates for stop ID ${id}: lat=${lat}, lon=${lon}`);
         }
         });
-        markerClusters.addLayers(markersToAdd);
+        stopsClusters.addLayers(markersToAdd);
     } else {
         console.log('Array expected but got:', data);
     }
@@ -185,10 +242,14 @@ console.log('Leaflet API component loaded');
 
         // markerClusters options:
         // https://github.com/Leaflet/Leaflet.markercluster/blob/master/src/MarkerClusterGroup.js
-        markerClusters = L.markerClusterGroup({
+        stopsClusters = L.markerClusterGroup({
             chunkedLoading: true,
-        })
-        map.addLayer(markerClusters);
+        });
+
+        liveClusters = L.layerGroup();
+
+        map.addLayer(stopsClusters);
+        map.addLayer(liveClusters);
 
         map.on('moveend', stopsInView);
 
@@ -219,7 +280,9 @@ console.log('Leaflet API component loaded');
 
         setTimeout(() => {
             map.invalidateSize();
+            // Get the functions and call them after map is loaded
             stopsInView();
+            transitLiveLocations();
         }, 100);
     }
 

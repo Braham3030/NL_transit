@@ -19,6 +19,7 @@
     "chain": "^0.4.2",
     "csv-parse": "^6.2.1",
     "fs": "^0.0.1-security",
+    "gtfs-realtime-bindings": "^1.1.1",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "parser": "^0.1.4",
