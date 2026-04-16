@@ -1,4 +1,9 @@
 
+*, *::before,
+ *::after {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 
 body {
     width: 100vw;
@@ -9,6 +14,7 @@ body {
     > header {
         z-index: 11111;
         position: absolute;
+        transform: translateY(-100%);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -16,13 +22,16 @@ body {
         left: 0;
         width: 100vw;
         height: 5em;
-        background-color: rgba(0, 0, 0, 0.2);
-        box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.5);
+        background-color: rgba(0, 0, 0, 0.4);
+        box-shadow: inset 0 5px 10px rgba(0, 0, 0, 0.5), 0 10px 30px rgba(0, 0, 0, 0.7);
         border-radius: 0 0 10px 10px;
 
+        animation: slideDown 1s cubic-bezier(.72,.56,.23,1.26) 1s forwards;
+
         > h1 {
-            color: white;
+            color: black;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            font-size: 32px;
         }
     }
 
@@ -32,5 +41,16 @@ body {
         align-items: center;
         width: 100vw;
         height: 100vh;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
     }
 }

@@ -39,7 +39,7 @@ import Navigation from './Navigation.astro';
         position: absolute;
         bottom: 2.5em;
         left: 50%;
-        transform: translateX(-50%);
+        transform: translate(-50%, 150%) scale(0.5);
         width: 95vw;
         height: 20vh;
         background-color: rgba(255, 255, 255, 0.4);
@@ -49,6 +49,8 @@ import Navigation from './Navigation.astro';
 
         margin: 0;
         padding: 0;
+
+        animation: slideInBottom 1s cubic-bezier(0.33, 0.72, 0, 1.18) 0.5s forwards;
 
         transition: height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 1.4s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
     }
@@ -73,4 +75,15 @@ import Navigation from './Navigation.astro';
         position: fixed;
     }
     
+
+    @keyframes slideInBottom {
+        0% {
+            transform: translate(-50%, 100%) scale(0.5);
+            opacity: 0;
+        }
+        100% {
+            transform: translate(-50%, 0) scale(1);
+            opacity: 1;
+        }
+    }
 </style>

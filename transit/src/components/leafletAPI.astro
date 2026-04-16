@@ -12,19 +12,122 @@ console.log('Leaflet API component loaded');
 <script>
     // @ts-nocheck
     import L from 'leaflet';
+
+    // MarkerCluster plugin for Leaflet
+    // https://leafletjs.com/2012/08/20/guest-post-markerclusterer-0-1-released.html
+    import 'leaflet.markercluster';
+    import 'leaflet.markercluster/dist/MarkerCluster.css';
+    import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
     let map;
     // let mapElement;
-    let myRenderer;
+    // let myRenderer;
 
-    let markerLayers;
+    // let markerLayers;
+    // let markerClusters;
+    let stopsClusters;
+    let liveClusters;
+    let fetchTimeout;
 
     let initialCoords = { lat: 52.370216, lon: 4.895168 }; // Amsterdam coordinates
 
+    // All the routes will be stores within this map
+    let routesMap = {};
+
     console.log('Initializing Leaflet map...');
+
+    async function transitLiveLocations() {
+
+            const liveLocationApi = '/api/TransitLocation';
+            
+        try {
+            const responseLive = await fetch(liveLocationApi);
+
+            // if (responseLive.status === 429) {
+            //     console.error('Rate limit exceeded for transit live locations API');
+            //     return new Response(JSON.stringify({ error: 'Rate limit exceeded for transit live locations API' }), {
+            //         status: 200,
+            //         headers: { 'Content-Type': 'application/json' }
+            //     });
+            // }
+
+            if (!responseLive.ok) {
+                const errorTextLive = await responseLive.json();
+                console.error('API error:', responseLive.status, errorTextLive);
+                return;
+            }
+
+            const dataLive = await responseLive.json();
+
+            console.log('Transit live locations data:', dataLive);
+            console.log(`Fetching transit live locations from API: ${liveLocationApi}`);
+
+            liveClusters.clearLayers();
+
+            const liveArray = Array.isArray(dataLive) ? dataLive : (dataLive && dataLive.vehicles) || [];
+
+            const liveMarkersToAdd = [];
+
+            liveArray.forEach(location => {
+
+                // Parsefloat is used to ensure the lat and lon are used as numbers
+                const lat = parseFloat(location.latitude);
+                const lon = parseFloat(location.longitude);
+
+                const routeId = location.routeId;
+
+                if (!isNaN(lat) && !isNaN(lon)) {
+                    const routeInfo = routesMap[routeId] || {
+                        shortName: 'Unknown route',
+                        longName: 'Unknown route',
+                        routeId: routeId,
+                        routeColor: '#000000',
+                        routeTextColor: '#ffffff',
+                        agencyId: 'Unknown agency'
+                    }
+                    const marker = L.circleMarker([lat, lon], {
+                        // With the items below, the live location can be customized 
+                        radius: 8,
+                        fillColor: routeInfo.routeColor,
+                        color: '#fff',
+                        weight: 1,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                        // renderer: myRenderer
+                    })
+
+                    // html popup binding
+                    marker.bindPopup(`
+                    <div class="livePopupContainer" style="background-color: ${routeInfo.routeColor}; box-shadow: 0px 0px 20px ${routeInfo.routeColor} !important;">
+                        <h3 style="color: ${routeInfo.routeTextColor}">Live location for line ${routeInfo.shortName}</h3>
+                        <ul>
+                            <li style="color: ${routeInfo.routeTextColor}"><b>Provider:</b><br> ${routeInfo.agencyId}</li>
+                            <li style="color: ${routeInfo.routeTextColor}"><b>Route name:</b><br> ${routeInfo.longName}</li>
+                            
+                        </ul>
+                    </div>
+                    `)
+
+
+
+
+                    // liveMarkersToAdd.push(marker);
+                    liveClusters.addLayer(marker);
+                }
+            });
+
+            // liveClusters.addLayers(liveMarkersToAdd);
+
+        } catch (error) {
+            console.error('Error fetching transit live locations:', error);
+        }
+    } 
 
     async function stopsInView() {
         if (!map) return;
 
+        clearTimeout(fetchTimeout);
+
+        fetchTimeout = setTimeout(async () => {
         let bounds;
 
         try {
@@ -34,47 +137,114 @@ console.log('Leaflet API component loaded');
             return;
         }
 
-        const minLat = bounds.getSouth();
-        const maxLat = bounds.getNorth();
-        const minLon = bounds.getWest();
-        const maxLon = bounds.getEast();
+        // getBounds returns an object to get the boundaries of the current map view.
+        // const minLat = bounds.getSouth();
+        // const maxLat = bounds.getNorth();
+        // const minLon = bounds.getWest();
+        // const maxLon = bounds.getEast();
     
 
-    const apiUrl = `/api/Stops?minLat=${minLat}&maxLat=${maxLat}&minLon=${minLon}&maxLon=${maxLon}`;
-    // const data = await response.json();
+        // With this apiUrl, the backend will filter the stops based on the view on the map
+    // const apiUrl = `/api/Stops?minLat=${minLat}&maxLat=${maxLat}&minLon=${minLon}&maxLon=${maxLon}`;
+    const apiUrl = `/api/Stops`;
+    const response = await fetch(apiUrl)
+    const data = await response.json();
+    // console.log("StopsData", data);
     console.log(`Fetching stops in view from API: ${apiUrl}`);
 
     try {
-        const response = await fetch(apiUrl)
-
+        
         if (!response.ok) {
-            const errorText = await response.text();
+            const errorText = await response.json();
             console.error('API error:', response.status, errorText);
             return;
         }
 
-        const data = await response.json();
+        // const data = await response.json();
         console.log(`Received ${data.length} stops in view`);
 
-        markerLayers.clearLayers();
+        stopsClusters.clearLayers();
 
-        data.forEach(stop => {
-            const marker = L.circleMarker([stop.lat, stop.lon], {
-                radius: 5,
+        const stopArray = Array.isArray(data) ? data : (data && data.stops) || []; // Handle both array and single object responses
+
+        if (stopArray.length > 0) {
+            const markersToAdd = [];
+        stopArray.forEach(stop => {
+
+            const rawLat = stop.stop_lat || stop.lat || stop.latitude;
+            const rawLon = stop.stop_lon || stop.lon || stop.longitude;
+            const rawName = stop.stop_name || stop.name || "unknown stop";
+            const id = stop.stop_id || stop.id || `NO ID`;
+            const code = stop.stop_code || stop.code || ``;
+
+            // Force lat/lon to be numbers in case they are strings
+            const lat = parseFloat(rawLat);
+            const lon = parseFloat(rawLon);
+
+            if (!isNaN(lat) && !isNaN(lon)) {
+            const marker = L.circleMarker([lat, lon], {
+            // let markers = new L.markerClusterGroup([lat, lon], {
+                radius: 10,
                 fillColor: '#3388ff',
                 color: '#fff',
                 weight: 1,
                 opacity: 1,
-                fillOpacity: 0.8,
-                renderer: myRenderer
+                fillOpacity: 0.8
+                // renderer: myRenderer
             })
-            .addTo(markerLayers);
-            marker.bindPopup(`<b>${stop.name}</b><br>Stop ID: ${stop.id}`);
-        })
+            // map.addLayer(markers);
+            marker.bindPopup(`<b>${rawName || "Unknown stops"}</b><br>Stop name: ${code}`);
+            markersToAdd.push(marker);
+        } else {
+            console.error(`Invalid coordinates for stop ID ${id}: lat=${lat}, lon=${lon}`);
+        }
+        });
+        stopsClusters.addLayers(markersToAdd);
+    } else {
+        console.log('Array expected but got:', data);
+    }
+    console.log('StopsData:', stopArray);
     } catch (error) {
         console.error('Error fetching stops in view:', error);
     }
+    }, 500);
 }
+
+
+    async function fetchRoutes() {
+        const RouteApiUrl = `/api/Routes`;
+        const responseRoute = await fetch(RouteApiUrl);
+        const dataRoute = await responseRoute.json();
+        console.log(`Fetching routes from API: ${RouteApiUrl}`);
+
+        try {
+            
+            if (!responseRoute.ok) {
+                const errorTextRoute = await responseRoute.json();
+                console.error('API error:', responseRoute.status, errorTextRoute);
+                return;
+            }
+
+            const routeArray = Array.isArray(dataRoute) ? dataRoute : (dataRoute && dataRoute.routes) || [];
+
+            if (routeArray.length > 0) {
+                
+                routeArray.forEach(route => {
+                    routesMap[route.route_id] = {
+                    shortName: route.route_short_name,
+                    longName: route.route_long_name,
+                    routeId: route.route_id,
+                    routeColor: '#' + route.route_color || '#000000',
+                    routeTextColor: '#' + route.route_text_color || '#ffffff',
+                    agencyId: route.agency_id || 'Unknown agency'
+            }});
+            };
+            console.log('Routes data:', routeArray);
+
+        } catch (error) {
+            console.error('Error fetching routes:', error);
+        };
+    }
 
     // fetch (apiUrl)
     //     .then(response => {
@@ -127,10 +297,10 @@ console.log('Leaflet API component loaded');
             zoomAnimation: true,
             markerZoomAnimation: true
         })
-        .setView([initialCoords.lat, initialCoords.lon], 10)
-        .locate({setView: true, maxZoom: 16});
+        // .setView([initialCoords.lat, initialCoords.lon], 10)
+        // .locate({setView: true, maxZoom: 16});
 
-        myRenderer = L.canvas({ padding: 0.5 });
+        // myRenderer = L.canvas({ padding: 0.5 });
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap',
@@ -138,7 +308,57 @@ console.log('Leaflet API component loaded');
             maxZoom: 19,
         }).addTo(map);
 
-        markerLayers = L.layerGroup().addTo(map);
+        map.setView([52.2, 5.5], 7.5);
+
+        // Use of Leaflet map options to further customize the map experience:
+        // https://leafletjs.com/reference.html#map-methods-for-getting-map-state
+
+        // flyTo Animation and location fetch on delay
+
+        map.on('locationfound', function(e) {
+            console.log('Location FOUND...');
+
+            map.flyTo(e.latlng, 16, {
+                animate: true,
+                // Animation duration in seconds
+                duration: 2
+            });
+        });
+
+        map.on('locationerror', function(e) {
+            console.error('Location error:', e.message);
+
+            map.flyTo([initialCoords.lat, initialCoords.lon], 10, {
+                animate: true,
+                // Animation duration in seconds
+                duration: 2
+            })
+        })
+
+        setTimeout(() => {
+            if (map) {
+                map.locate({
+                    // Disables automatic view resetting to default
+                    setView: false,
+                    // Use of high accuracy for better location results. The geolocation fetch happens on a general level, with the high accuracy option, the location will be more accurate
+                    // https://w3c.github.io/geolocation/#enablehighaccuracy-member
+                    enableHighAccuracy: true
+                })
+            // map.setView([initialCoords.lat, initialCoords.lon], 10);
+            // map.locate({setView: true, maxZoom: 16});
+            }
+        }, 1500);
+
+        // markerClusters options:
+        // https://github.com/Leaflet/Leaflet.markercluster/blob/master/src/MarkerClusterGroup.js
+        stopsClusters = L.markerClusterGroup({
+            chunkedLoading: true,
+        });
+
+        liveClusters = L.layerGroup();
+
+        map.addLayer(stopsClusters);
+        map.addLayer(liveClusters);
 
         map.on('moveend', stopsInView);
 
@@ -169,8 +389,18 @@ console.log('Leaflet API component loaded');
 
         setTimeout(() => {
             map.invalidateSize();
+            // Get the functions and call them after map is loaded
             stopsInView();
-        }, 100);
+            // transitLiveLocations();
+            
+        }, 1000);
+
+        setTimeout(() => {
+            map.invalidateSize();
+            transitLiveLocations();
+            // Delay the fetch to the live locations. To ensure map loading before fetching
+            fetchRoutes();
+        }, 3500);
     }
 
     document.addEventListener('DOMContentLoaded', setupMap);
@@ -178,6 +408,7 @@ console.log('Leaflet API component loaded');
 </script>
 
 
+<!-- is:global is used to also change styling in other files. For instance in leaflet -->
 <style is:global>
     .leaflet-top {
         margin-top: 65vh !important;
@@ -191,6 +422,9 @@ console.log('Leaflet API component loaded');
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
         border-radius: 12px !important;
         overflow: hidden !important;
+        transform: translateX(100px) scale(0);
+
+        animation: slideOutZoom 0.5s cubic-bezier(0.33, 0.72, 0, 1.18) forwards 0.8s;
     }
 
     .leaflet-control-zoom a {
@@ -217,16 +451,115 @@ console.log('Leaflet API component loaded');
     .leaflet-control-zoom-out {
         border-top: 0.1px solid rgba(0, 0, 0, 0.3) !important;
     }
+
+    /* https://stackoverflow.com/questions/12606141/how-would-i-customise-the-look-and-feel-of-the-leaflet-popup */
+    .leaflet-popup-content-wrapper {
+        background-color: transparent !important;
+        box-shadow: none !important;
+        width: fit-content !important;
+        height: auto !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        border-radius: 18px !important;
+
+        animation: slideOutPopup 0.5s ease-in-out forwards;
+    }
+
+    .leaflet-popup-content-wrapper .leaflet-popup-content {
+        background-color: transparent !important;
+    }
+    .leaflet-popup-tip-container {
+        display: none !important;
+    }
+
+    .leaflet-popup-close-button {
+        width: 30px !important;
+        height: 30px !important;
+        transform: translate(0px, 15px);
+        opacity: 0;
+        z-index: -1;
+        
+        animation: slideOutBanner 0.5s ease-in-out forwards 1s;
+
+        > span {
+            font-size: 24px !important;
+            color: black !important;
+            font-weight: 800 !important;
+            width: 100% !important;
+            height: 100% !important;
+        }
+    }
+
+    .leaflet-popup-content .livePopupContainer {
+        width: 100% !important;
+        padding: 1em !important;
+        border-radius: 18px !important;
+        /* box-shadow: 4px 8px 10px rgba(0, 0, 0, 0.9) !important; */
+        > h3 {
+            font-size: 24px !important;
+            margin: 0 auto !important;
+            margin-bottom: 1em !important;
+            padding-inline: 0.5em !important;
+        }
+        > ul {
+            list-style-type: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+
+        > li {
+            font-size: 18px !important;
+            margin-bottom: 4px !important;
+            padding-inline: 0.5em !important;
+        }
+    }
+}
+
+
+    @keyframes slideOutZoom {
+        0% {
+            opacity: 0;
+            transform: translateX(100px) scale(0);
+        }
+        100% {
+            opacity: 1;
+            transform: translateX(0) scale(1);
+        }
+    }
+
+
+
+    @keyframes slideOutPopup {
+        0% {
+            opacity: 0;
+            transform: translateY(20px) scaleX(0);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0) scaleX(1);
+        }
+    }
+
+    @keyframes slideOutBanner {
+        0% {
+            opacity: 0;
+            transform: translate(-25px, 50px);
+        }
+        100% {
+            z-index: 9999;
+            opacity: 1;
+            transform: translate(0px, 15px);
+        }
+    }
 </style>
 
 <style>
     /* https://css-loaders.com/dots-bars/ */
 
-#map {
+/* #map {
     display: flex;
     align-items: center;
     justify-content: center;
-}
+} */
 
 .loading {
   width: 40px;
@@ -258,5 +591,18 @@ console.log('Leaflet API component loaded');
     background-size: 8px 100%,8px 4px, 8px 4px,8px 100%,8px 4px,8px 4px,8px 100%,8px 4px,8px 4px;
     background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(0% - 2px),50% calc(100% + 2px),100% 50%,100% calc(0% - 2px),100% calc(100% + 2px);
  }
+}
+
+/* ------ POPUP STYLING ------ */
+
+.livePopupContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border-radius: 18px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 </style>
