@@ -30,6 +30,9 @@ console.log('Leaflet API component loaded');
 
     let initialCoords = { lat: 52.370216, lon: 4.895168 }; // Amsterdam coordinates
 
+    // All the routes will be stores within this map
+    let routesMap = {};
+
     console.log('Initializing Leaflet map...');
 
     async function transitLiveLocations() {
@@ -70,11 +73,20 @@ console.log('Leaflet API component loaded');
                 const lat = parseFloat(location.latitude);
                 const lon = parseFloat(location.longitude);
 
+                const routeId = location.routeId;
+
                 if (!isNaN(lat) && !isNaN(lon)) {
+                    const routeInfo = routesMap[routeId] || {
+                        shortName: 'Unknown route',
+                        longName: 'Unknown route',
+                        routeId: routeId,
+                        routeColor: '#000000',
+                        routeTextColor: '#ffffff'
+                    }
                     const marker = L.circleMarker([lat, lon], {
                         // With the items below, the live location can be customized 
                         radius: 8,
-                        fillColor: '#ff5733',
+                        fillColor: routeInfo.routeColor,
                         color: '#fff',
                         weight: 1,
                         opacity: 1,
@@ -83,7 +95,18 @@ console.log('Leaflet API component loaded');
                     })
 
                     // html popup binding
-                    marker.bindPopup(`Live location`)
+                    marker.bindPopup(`
+                    <div class="livePopupContainer" style="background-color: ${routeInfo.routeColor}">
+                        <h3>Live location for line ${routeInfo.shortName}</h3>
+                        <ul>
+                            <li>Route ID: ${routeInfo.routeId}</li>
+                        </ul>
+                    </div>
+                    `)
+
+
+
+
                     // liveMarkersToAdd.push(marker);
                     liveClusters.addLayer(marker);
                 }
@@ -123,7 +146,7 @@ console.log('Leaflet API component loaded');
     const apiUrl = `/api/Stops`;
     const response = await fetch(apiUrl)
     const data = await response.json();
-    console.log("dataaaaa", data);
+    // console.log("StopsData", data);
     console.log(`Fetching stops in view from API: ${apiUrl}`);
 
     try {
@@ -177,11 +200,47 @@ console.log('Leaflet API component loaded');
     } else {
         console.log('Array expected but got:', data);
     }
+    console.log('StopsData:', stopArray);
     } catch (error) {
         console.error('Error fetching stops in view:', error);
     }
     }, 500);
 }
+
+
+    async function fetchRoutes() {
+        const RouteApiUrl = `/api/Routes`;
+        const responseRoute = await fetch(RouteApiUrl);
+        const dataRoute = await responseRoute.json();
+        console.log(`Fetching routes from API: ${RouteApiUrl}`);
+
+        try {
+            
+            if (!responseRoute.ok) {
+                const errorTextRoute = await responseRoute.json();
+                console.error('API error:', responseRoute.status, errorTextRoute);
+                return;
+            }
+
+            const routeArray = Array.isArray(dataRoute) ? dataRoute : (dataRoute && dataRoute.routes) || [];
+
+            if (routeArray.length > 0) {
+                
+                routeArray.forEach(route => {
+                    routesMap[route.route_id] = {
+                    shortName: route.route_short_name,
+                    longName: route.route_long_name,
+                    routeId: route.route_id,
+                    routeColor: '#' + route.route_color || '#000000',
+                    routeTextColor: '#' + route.route_text_color || '#ffffff'
+            }});
+            };
+            console.log('Routes data:', routeArray);
+
+        } catch (error) {
+            console.error('Error fetching routes:', error);
+        };
+    }
 
     // fetch (apiUrl)
     //     .then(response => {
@@ -329,12 +388,14 @@ console.log('Leaflet API component loaded');
             // Get the functions and call them after map is loaded
             stopsInView();
             // transitLiveLocations();
+            
         }, 1000);
 
         setTimeout(() => {
             map.invalidateSize();
             transitLiveLocations();
             // Delay the fetch to the live locations. To ensure map loading before fetching
+            fetchRoutes();
         }, 3500);
     }
 
@@ -343,6 +404,7 @@ console.log('Leaflet API component loaded');
 </script>
 
 
+<!-- is:global is used to also change styling in other files. For instance in leaflet -->
 <style is:global>
     .leaflet-top {
         margin-top: 65vh !important;
@@ -381,6 +443,20 @@ console.log('Leaflet API component loaded');
 
     .leaflet-control-zoom-out {
         border-top: 0.1px solid rgba(0, 0, 0, 0.3) !important;
+    }
+
+    .leaflet-popup-content-wrapper {
+        background-color: transparent !important;
+        box-shadow: none !important;
+        width: 20em !important;
+        height: auto !important;
+    }
+
+    .leaflet-popup-content-wrapper .leaflet-popup-content {
+        background-color: transparent !important;
+    }
+    .leaflet-popup-tip-container {
+        display: none !important;
     }
 </style>
 
@@ -423,5 +499,26 @@ console.log('Leaflet API component loaded');
     background-size: 8px 100%,8px 4px, 8px 4px,8px 100%,8px 4px,8px 4px,8px 100%,8px 4px,8px 4px;
     background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(0% - 2px),50% calc(100% + 2px),100% 50%,100% calc(0% - 2px),100% calc(100% + 2px);
  }
+}
+
+.livePopupContainer {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    border-radius: 18px;
+    border: 5px solid red;
+    z-index: 9999;
+
+    > ul {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+
+        > li {
+            list-style-type: none;
+            border: 2px solid green;
+        }
+    }
 }
 </style>
