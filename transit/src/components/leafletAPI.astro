@@ -20,12 +20,13 @@ console.log('Leaflet API component loaded');
     import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
     let map;
     // let mapElement;
-    let myRenderer;
+    // let myRenderer;
 
     // let markerLayers;
     // let markerClusters;
     let stopsClusters;
     let liveClusters;
+    let fetchTimeout;
 
     let initialCoords = { lat: 52.370216, lon: 4.895168 }; // Amsterdam coordinates
 
@@ -77,8 +78,8 @@ console.log('Leaflet API component loaded');
                         color: '#fff',
                         weight: 1,
                         opacity: 1,
-                        fillOpacity: 0.9,
-                        renderer: myRenderer
+                        fillOpacity: 0.9
+                        // renderer: myRenderer
                     })
 
                     // html popup binding
@@ -98,6 +99,9 @@ console.log('Leaflet API component loaded');
     async function stopsInView() {
         if (!map) return;
 
+        clearTimeout(fetchTimeout);
+
+        fetchTimeout = setTimeout(async () => {
         let bounds;
 
         try {
@@ -108,10 +112,10 @@ console.log('Leaflet API component loaded');
         }
 
         // getBounds returns an object to get the boundaries of the current map view.
-        const minLat = bounds.getSouth();
-        const maxLat = bounds.getNorth();
-        const minLon = bounds.getWest();
-        const maxLon = bounds.getEast();
+        // const minLat = bounds.getSouth();
+        // const maxLat = bounds.getNorth();
+        // const minLon = bounds.getWest();
+        // const maxLon = bounds.getEast();
     
 
         // With this apiUrl, the backend will filter the stops based on the view on the map
@@ -159,8 +163,8 @@ console.log('Leaflet API component loaded');
                 color: '#fff',
                 weight: 1,
                 opacity: 1,
-                fillOpacity: 0.8,
-                renderer: myRenderer
+                fillOpacity: 0.8
+                // renderer: myRenderer
             })
             // map.addLayer(markers);
             marker.bindPopup(`<b>${rawName || "Unknown stops"}</b><br>Stop name: ${code}`);
@@ -176,6 +180,7 @@ console.log('Leaflet API component loaded');
     } catch (error) {
         console.error('Error fetching stops in view:', error);
     }
+    }, 500);
 }
 
     // fetch (apiUrl)
@@ -229,16 +234,57 @@ console.log('Leaflet API component loaded');
             zoomAnimation: true,
             markerZoomAnimation: true
         })
-        .setView([initialCoords.lat, initialCoords.lon], 10)
-        .locate({setView: true, maxZoom: 16});
+        // .setView([initialCoords.lat, initialCoords.lon], 10)
+        // .locate({setView: true, maxZoom: 16});
 
-        myRenderer = L.canvas({ padding: 0.5 });
+        // myRenderer = L.canvas({ padding: 0.5 });
 
         L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap',
             minZoom: 7.5, 
             maxZoom: 19,
         }).addTo(map);
+
+        map.setView([52.2, 5.5], 7.5);
+
+        // Use of Leaflet map options to further customize the map experience:
+        // https://leafletjs.com/reference.html#map-methods-for-getting-map-state
+
+        // flyTo Animation and location fetch on delay
+
+        map.on('locationfound', function(e) {
+            console.log('Location FOUND...');
+
+            map.flyTo(e.latlng, 16, {
+                animate: true,
+                // Animation duration in seconds
+                duration: 2
+            });
+        });
+
+        map.on('locationerror', function(e) {
+            console.error('Location error:', e.message);
+
+            map.flyTo([initialCoords.lat, initialCoords.lon], 10, {
+                animate: true,
+                // Animation duration in seconds
+                duration: 2
+            })
+        })
+
+        setTimeout(() => {
+            if (map) {
+                map.locate({
+                    // Disables automatic view resetting to default
+                    setView: false,
+                    // Use of high accuracy for better location results. The geolocation fetch happens on a general level, with the high accuracy option, the location will be more accurate
+                    // https://w3c.github.io/geolocation/#enablehighaccuracy-member
+                    enableHighAccuracy: true
+                })
+            // map.setView([initialCoords.lat, initialCoords.lon], 10);
+            // map.locate({setView: true, maxZoom: 16});
+            }
+        }, 1500);
 
         // markerClusters options:
         // https://github.com/Leaflet/Leaflet.markercluster/blob/master/src/MarkerClusterGroup.js
@@ -282,8 +328,14 @@ console.log('Leaflet API component loaded');
             map.invalidateSize();
             // Get the functions and call them after map is loaded
             stopsInView();
+            // transitLiveLocations();
+        }, 1000);
+
+        setTimeout(() => {
+            map.invalidateSize();
             transitLiveLocations();
-        }, 100);
+            // Delay the fetch to the live locations. To ensure map loading before fetching
+        }, 3500);
     }
 
     document.addEventListener('DOMContentLoaded', setupMap);
@@ -335,11 +387,11 @@ console.log('Leaflet API component loaded');
 <style>
     /* https://css-loaders.com/dots-bars/ */
 
-#map {
+/* #map {
     display: flex;
     align-items: center;
     justify-content: center;
-}
+} */
 
 .loading {
   width: 40px;
