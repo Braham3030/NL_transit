@@ -193,7 +193,16 @@ console.log('Leaflet API component loaded');
                 // renderer: myRenderer
             })
             // map.addLayer(markers);
-            marker.bindPopup(`<b>${rawName || "Unknown stops"}</b><br>Stop name: ${code}`);
+            marker.bindPopup(`
+            <div class="livePopupContainer" style="background-color: rgba(255, 255, 255, 0.8); box-shadow: 0px 0px 20px white !important;">
+                        <h3 style="color: black">Stop: ${rawName}</h3>
+                        <ul>
+                            <li style="color: black"><b>bla</b><br> ${rawLon}</li>
+                            <li style="color: black"><b>bla</b><br> ${rawLat}</li>
+                            
+                        </ul>
+                    </div>
+            `);
             markersToAdd.push(marker);
         } else {
             console.error(`Invalid coordinates for stop ID ${id}: lat=${lat}, lon=${lon}`);
