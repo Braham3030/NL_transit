@@ -9,23 +9,149 @@ import Navigation from './Navigation.astro';
 </div>
 
 <script>
+    // @ts-nocheck
     const panel = document.getElementById("bottomPanel");
     const handle = document.getElementById("panelHandle");
 
-    handle?.addEventListener("click", () => {
-        if (!panel) return;
+    // handle?.addEventListener("click", () => {
+    //     if (!panel) return;
 
-        panel?.classList.toggle("open");
-    })
+    //     panel?.classList.toggle("open");
+    // })
 
 
     let isOpen = false;
 
     const togglePanel = () => {
+        if (!panel) return;
         isOpen = !isOpen;
+
+        if (isOpen) {
+            panel.classList.add("open");
+        } else {
+            panel.classList.remove("open");
+        }
+
+        // isOpen = !isOpen;
     }
 
-    togglePanel();
+
+    // handle?.addEventListener("click", (e) => {
+    //     if (!isDragging) {
+    //         togglePanel();
+    //     }
+    // });
+
+
+    let isDragging = false;
+    let startY = 0;
+    let startHeight = 0;
+
+    handle?.addEventListener("pointerdown", (e) => {
+        if (!panel) return;
+
+        isDragging = true;
+        startY = e.clientY;
+
+        // Calculate the current panel height
+        startHeight = panel.getBoundingClientRect().height;
+
+        panel.style.transition = "none";
+
+        // const currentBottom = panel.style.getPropertyValue("--bg-bottom");
+        // startLeft = parseFloat(currentBottom) || startActive.offsetBottom;
+
+        // panel.classList.add("dragging");
+        // panel.classList.remove("glowBox");
+
+        // Browser keeps following the pointer even if it goes outside the element
+        handle.setPointerCapture(e.pointerId);
+    });
+
+    window.addEventListener("pointermove", (e) => {
+        if (!isDragging || !panel) return;
+
+        const deltaY = startY - e.clientY;
+        let newHeight = startHeight + deltaY;
+        
+        const windowHeight = window.innerHeight;
+        // Minimum height is 20% of the window
+        const minHeight = windowHeight * 0.2;
+        // Maximum height is 80% of the window
+        const maxheight = windowHeight * 0.8;
+
+        if (newHeight < minHeight) newHeight = minHeight;
+        if (newHeight > maxheight) newHeight = maxheight;
+
+        // const firstLeft = navItems[0].offsetLeft;
+        // const lastLeft = navItems[navItems.length - 1].offsetLeft;
+        // if (newLeft < firstLeft) newLeft = firstLeft;
+        // if (newLeft > lastLeft) newLeft = lastLeft;
+
+
+        panel.style.height = `${newHeight}px`;
+    });
+
+    window.addEventListener("pointerup", (e) => {
+        if (!isDragging || !panel) return;
+        isDragging = false;
+
+        panel.style.transition = ""; 
+        if (handle.hasPointerCapture(e.pointerId)) {
+            handle.releasePointerCapture(e.pointerId);
+        }
+
+
+        const distanceMoved = Math.abs(startY - e.clientY);
+
+        if (distanceMoved < 5) {
+            togglePanel();
+            panel.style.height = "";
+            return;
+        }
+
+        const currentHeight = panel.getBoundingClientRect().height;
+        const threshold = window.innerHeight * 0.5;
+
+        if (currentHeight > threshold) {
+            isOpen = true;
+            panel.classList.add("open");
+        } else {
+            isOpen = false;
+            panel.classList.remove("open");
+        }
+
+        panel.style.height = "";
+
+
+
+
+        // panel.classList.remove("dragging");
+        // panel.releasePointerCapture(e.pointerId);
+
+        // const currentBottom = parseFloat(panel.style.getPropertyValue("--bg-bottom")) || 0;
+        // let closestItem = navItems[0];
+        // let minDiff = Infinity;
+        
+        // navItems.forEach(item => {
+        //     const diff = Math.abs(currentBottom - item.offsetBottom);
+        //     if (diff < minDiff) {
+        //         minDiff = diff;
+        //         closestItem = item;
+        //     }
+        // });
+
+        // navItems.forEach(i => i.classList.remove("active"));
+        // closestItem.classList.add("active");
+        // moveBackground(closestItem);
+
+        // setTimeout(() => {
+        // }, 800);
+    });
+
+
+
+    // togglePanel();
 
 </script>
 
@@ -73,6 +199,13 @@ import Navigation from './Navigation.astro';
         border-radius: 8px;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
         position: fixed;
+
+        cursor: grab;
+        touch-action: none;
+
+        &:active {
+            cursor: grabbing;
+        }
     }
     
 
