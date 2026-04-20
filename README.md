@@ -65,6 +65,95 @@ Ik heb bijvoorbeeld geprobeerd om de "txt" file via de xode om te zetten naar ee
 Hierna heb ik het geprobeerd door de "txt" data om te zetten met een converter. Dit heeft ook niet goed geholpen, omdat het de data als "txt" behield en alleen de naam veranderd naar "json". 
 Om dit uiteindelijk wel recht te krijgen heb ik de "txt" file in excel gezet. Deze file is er vervolgens zo in verwerkt dat het beter leesbaar wordt als "csv" file. Vervolgens de excel opgeslagen als "csv" en weer de converter ermee gedaan. Hier werkte de converter wel goed mee. Ik heb hierbij hulp gekregen van kerr, wij hebben samen naar de foutmeldingen gekeken en naar de "txt' bestand. De "txt' bestand is eigenlijk een "csv" bestand verpakt in een "txt" formaat.
 
+## Dag 4
+
+## Dag 5
+
+
+
+Met behulp van AI een tijdelijke storage aangemaakt en laten verversen met nieuwe data, dit inverband met 'rate limit'. Het idee is om de "realtime" locaties op de kaart te blijvem behouden, zodat de gebruiker altijd het OV kan blijven zien. Het probleem dat ik eerder ondervond, was dat de locaties verdwijnen na een aantal keer herladen, of bij het draggen of zoomen op de kaart.
+
+<details>
+<summary>AI code</summary>
+  // @ts-nocheck
+import GtfsRealtime from 'gtfs-realtime-bindings';
+
+const url = 'https://gtfs.ovapi.nl/nl/vehiclePositions.pb';
+
+let cachedData = null;
+let lastFetchTime = 0;
+// Cache duration in milliseconds
+const cacheDuration = 15000;
+
+export async function GET() {
+    try {
+        const currentTime = Date.now();
+
+        // 1. Controleer of we bruikbare cache hebben
+        if (cachedData && (currentTime - lastFetchTime < cacheDuration)) {
+            console.log('Using cached data');
+            return new Response(JSON.stringify(cachedData), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        // 2. Haal nieuwe data op
+        const response = await fetch(url);
+
+        // 3. Vang de rate-limit af (val terug op oude cache indien beschikbaar)
+        if (response.status === 429 && cachedData) {
+            console.warn('Rate limit bereikt, oude cache wordt teruggestuurd');
+            return new Response(JSON.stringify(cachedData), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json' }
+            });
+        }
+
+        // 4. Check of het verzoek succesvol was voordat we verder gaan
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // 5. Lees de binaire data in (GEEN JSON!)
+        const buffer = await response.arrayBuffer();
+
+        // 6. Decodeer de Protocol Buffer
+        const message = GtfsRealtime.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
+        
+        // 7. Filter en map de data naar een bruikbare array
+        const vehicles = message.entity
+            .filter(entity => entity.vehicle)
+            .map(entity => ({
+                id: entity.id,
+                latitude: entity.vehicle.position?.latitude,
+                longitude: entity.vehicle.position?.longitude,
+                routeId: entity.vehicle.trip?.routeId,
+                directionId: entity.vehicle.trip?.directionId,
+                timestamp: entity.vehicle.timestamp
+            }));
+
+        // 8. Sla de verwerkte array op in de cache en update de timer
+        cachedData = vehicles;
+        lastFetchTime = currentTime;
+
+        // 9. Stuur de data naar je frontend
+        return new Response(JSON.stringify(vehicles), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+    } catch (error) {
+        console.error('Error fetching or processing GTFS data:', error);
+
+        return new Response(JSON.stringify({ error: 'Failed to fetch or process data' }), {
+            status: 500,
+            headers: { 'Content-Type': 'application/json' }
+        });
+    }
+}
+</details>
+
 
 
 ## Bronnen
