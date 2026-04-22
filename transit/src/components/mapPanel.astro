@@ -5,14 +5,17 @@ import Navigation from './Navigation.astro';
 <div id="bottomPanel" class="panelBox">
     <span id="panelHandle"></span>
     <!-- <h2>Panel</h2> -->
+    <div class="searchBoxContainer">
     <label for="Search" class="searchBox">
-        <input type="text" id="Search" placeholder="">
+        <input type="text" id="Search" placeholder="" autocorrect="off">
         <span id="searchTextBox">Search for <span id="searchText"></span></span>
-        <button class="closeBtn">
+        
+    </label>
+    <button class="closeBtn" type="button">
             <span></span>
             <span></span>
         </button>
-    </label>
+    </div>
     <Navigation />
 </div>
 
@@ -82,7 +85,7 @@ import Navigation from './Navigation.astro';
         
         const windowHeight = window.innerHeight;
         // Minimum height is 20% of the window
-        const minHeight = windowHeight * 0.2;
+        const minHeight = windowHeight * 0.1;
         // Maximum height is 80% of the window
         const maxheight = windowHeight * 0.8;
 
@@ -171,6 +174,29 @@ import Navigation from './Navigation.astro';
 }, 2000);
 
 
+    // close button 
+
+    const closeBtn = document.querySelector(".closeBtn");
+    const searchElement = document.getElementById("Search");
+
+    closeBtn?.addEventListener("click", () => {
+        if (!panel) return;
+
+        isOpen = false;
+        panel.classList.remove("open");
+
+        // The styling for the "open" state will be removed and defaulted to the styles in css
+        panel.style.height = "";
+        panel.style.width = "";
+        panel.style.opacity = "";
+
+        if (searchElement) {
+            // The placeholder will be empty
+            searchElement.value = "";
+        }
+    })
+
+
     // togglePanel();
 
 </script>
@@ -235,27 +261,32 @@ import Navigation from './Navigation.astro';
         background-color: rgba(255, 255, 255, 0.4);
         backdrop-filter: blur(8px);
 
-        > .searchBox {
+        > .searchBoxContainer {
             width: 90%;
             margin-bottom: 2em;
-            background-color: rgba(255, 255, 255, 0.6);
+
+        > .searchBox {
+            width: 100%;
+            
+            /* background-color: rgba(255, 255, 255, 0.6); */
             padding: 0;
-            position: relative;
+            /* position: relative; */
 
             > #Search {
                 width: 100%;
             }
 
-            > #searchText {
+            > #searchTextBox {
                 transform: translate(7%, -50%);
             }
-
+        }
             
         }
 
     }
 
-    .searchBox {
+    .searchBoxContainer {
+
         width: 80%;
         display: flex;
         align-items: center;
@@ -268,6 +299,10 @@ import Navigation from './Navigation.astro';
         position: relative;
         
         transition: margin-bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+    > .searchBox {
+        width: 100%;
+        border-radius: 24px;
 
         > #searchTextBox {
             position: absolute;
@@ -307,17 +342,20 @@ import Navigation from './Navigation.astro';
             border: none;
             outline: none;
             box-shadow: 0 0px 10px rgba(0, 0, 0, 0.8);
-            background-color: rgba(255, 255, 255, 0.4);
+            /* background-color: rgba(255, 255, 255, 0.4); */
+            background-color: transparent;
             /* background-color: red; */
 
             transition: background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
 
         }
 
-        > .closeBtn {
-            width: 4em;
-            height: 4em;
-            border-radius: 50%;
+        
+    }
+    > .closeBtn {
+            width: 4.5em;
+            height: 3em;
+            border-radius: 40%;
 
             position: absolute;
             right: 10%;
@@ -325,14 +363,16 @@ import Navigation from './Navigation.astro';
             transform: translate(0%, -50%);
             opacity: 0;
             z-index: -1;
+            pointer-events: none;
             display: flex;
             align-items: center;
             justify-content: center;
+            background-color: transparent;
 
             border: none;
-            box-shadow: 0 0px 20px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0px 0px rgba(0, 0, 0, 0.6);
 
-            transition: transform 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), right 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+            transition: transform 0.4s cubic-bezier(0.33, 0.72, 0, 1.18), right 0.4s cubic-bezier(0.33, 0.72, 0, 1.18), top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.6s cubic-bezier(0.33, 0.72, 0, 1.18) 0.6s;
 
             > span {
                 width: 3em;
@@ -344,11 +384,12 @@ import Navigation from './Navigation.astro';
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%) rotate(0deg);
+                pointer-events: none;
 
                 transition: transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
             }
         }
-    }
+}
 
         &:has(#Search:not(:placeholder-shown)) #searchTextBox {
             opacity: 0;
@@ -358,11 +399,19 @@ import Navigation from './Navigation.astro';
         }
 
         &:has(#Search:focus) .panelBox {
+             border-radius: 20px 20px 0 0;
+            bottom: 0;
+            width: 100vw;
             height: 80vh;
+            background-color: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px);
+
+            > .searchBoxContainer {
+                width: 90%;
 
             > .searchBox {
-                width: 90%;
-                margin-bottom: 2em;
+                width: 100%;
+                
 
                 /* box-shadow: 0 0px 30px rgba(0, 0, 0, 1); */
 
@@ -372,7 +421,10 @@ import Navigation from './Navigation.astro';
                     width: 80%;
                 }
 
-                > .closeBtn {
+                
+            }
+
+            > .closeBtn {
                     margin: 0 auto;
                     width: 4em;
                     height: 4em;
@@ -382,6 +434,10 @@ import Navigation from './Navigation.astro';
                     top: 50%;
                     transform: translate(0%, -50%);
                     opacity: 1;
+                    pointer-events: all;
+                    z-index: 1000;
+                    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8);
+                    
 
                 > span:first-child {
                     transform: translate(-50%, -50%) rotate(45deg);
@@ -390,7 +446,7 @@ import Navigation from './Navigation.astro';
                     transform: translate(-50%, -50%) rotate(-45deg);
                 }
             }
-            }
+        }
         }
         
 
@@ -437,4 +493,6 @@ import Navigation from './Navigation.astro';
             transform: translateY(100%) scale(0.8);
         }
     }
+
+    /* Desktop layout */
 </style>
