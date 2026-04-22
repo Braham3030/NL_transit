@@ -7,7 +7,7 @@
 
 body {
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     margin: 0;
     padding: 0;
 
@@ -41,12 +41,12 @@ body {
         justify-content: center;
         align-items: center;
         width: 100vw;
-        height: 100vh;
+        height: 100dvh;
     }
 }
 
 body:has(.panelBox.open) .leaflet-top {
-    margin-top: 80vh !important;
+    margin-top: 80dvh;
     opacity: 0;
 }
 
@@ -58,6 +58,22 @@ body:has(.panelBox.open) .leaflet-top {
     }
     to {
         transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Desktop sizing */
+
+@media (min-width: 1200px) {
+    body:has(.panelBox.open) .leaflet-top {
+    margin-top: 10dvh;
+    margin-left: 24vw !important;
+    opacity: 1;
+}
+
+    body:has(#Search:focus) .leaflet-top {
+        margin-top: 10dvh;
+        margin-left: 24vw !important;
         opacity: 1;
     }
 }

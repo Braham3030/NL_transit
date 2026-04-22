@@ -72,6 +72,9 @@ import Navigation from './Navigation.astro';
 
         panel.style.transition = "none";
 
+        if (searchBoxContainer)
+        searchBoxContainer.style.transition = "none";
+
         // const currentBottom = panel.style.getPropertyValue("--bg-bottom");
         // startLeft = parseFloat(currentBottom) || startActive.offsetBottom;
 
@@ -99,9 +102,19 @@ import Navigation from './Navigation.astro';
 
 
         const windowWidth = window.innerWidth;
+        let minWidth;
+        let maxWidth;
 
-        const minWidth = windowWidth * 0.9;
-        const maxWidth = windowWidth * 1;
+        // if, else statement to determine screen size for width calculations
+        if (windowWidth > 1200) {
+            minWidth = windowWidth * 0.2;
+            maxWidth = windowWidth * 0.24;
+        } else {
+            minWidth = windowWidth * 0.9;
+            maxWidth = windowWidth * 1;
+        }
+
+        
 
         // Calculates the height progress as a value between 0 and 1. 0 is the minimum height and 1 the maximum height.
         const progress = (newHeight - minHeight) / (maxHeight - minHeight);
@@ -160,6 +173,13 @@ import Navigation from './Navigation.astro';
             panel.style.borderRadius = "";
             searchBoxContainer.style.marginTop = "";
             searchBoxContainer.style.marginBottom = "";
+
+            // If the panel was toggled, the search box will reset to its default position and styling 
+            if (searchBoxContainer) {
+                searchBoxContainer.style.transition = "";
+                searchBoxContainer.style.marginTop = "";
+                searchBoxContainer.style.marginBottom = "";
+            }
             return;
         }
 
@@ -183,6 +203,13 @@ import Navigation from './Navigation.astro';
         panel.style.borderRadius = "";
         searchBoxContainer.style.marginTop = "";
         searchBoxContainer.style.marginBottom = "";
+
+        // The styling for the "open" state will be removed and defaulted to the css state
+        if (searchBoxContainer) {
+            searchBoxContainer.style.transition = "";
+            searchBoxContainer.style.marginTop = "";
+            searchBoxContainer.style.marginBottom = "";
+        }
 
         // panel.classList.remove("dragging");
         // panel.releasePointerCapture(e.pointerId);
@@ -620,13 +647,18 @@ import Navigation from './Navigation.astro';
     @media (min-width: 1200px) {
         .panelBox {
             bottom: .5em;
-            left: 11%;
+            left: 12%;
             transform: translate(-50%, 150%) scale(0.5);
             width: 20vw;
         }
 
         .panelBox.open {
-            width: 20vw;
+            left: 12%;
+            width: 24vw;
+        }
+
+        &:has(#Search:focus) .panelBox {
+            width: 24vw;
         }
     }
 </style>
