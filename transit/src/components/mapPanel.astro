@@ -3,29 +3,257 @@ import Navigation from './Navigation.astro';
 ---
 
 <div id="bottomPanel" class="panelBox">
-    <span id="panelHandle"></span>
-    <h2>Panel</h2>
+    <span id="panelHandleContainer">
+        <span class="panelHandle"></span>
+        <span class="panelHandle"></span>
+    </span>
+    <!-- <h2>Panel</h2> -->
+    <div class="searchBoxContainer">
+    <label for="Search" class="searchBox">
+        <input type="text" id="Search" placeholder="" autocorrect="off">
+        <span id="searchTextBox">Search for <span id="searchText"></span></span>
+        
+    </label>
+    <button class="closeBtn" type="button">
+            <span></span>
+            <span></span>
+        </button>
+    </div>
     <Navigation />
 </div>
 
 <script>
+    // @ts-nocheck
     const panel = document.getElementById("bottomPanel");
-    const handle = document.getElementById("panelHandle");
+    const handle = document.getElementById("panelHandleContainer");
+    const searchBoxContainer = document.querySelector(".searchBoxContainer");
 
-    handle?.addEventListener("click", () => {
-        if (!panel) return;
+    // handle?.addEventListener("click", () => {
+    //     if (!panel) return;
 
-        panel?.classList.toggle("open");
-    })
+    //     panel?.classList.toggle("open");
+    // })
 
 
     let isOpen = false;
 
     const togglePanel = () => {
+        if (!panel) return;
         isOpen = !isOpen;
+
+        if (isOpen) {
+            panel.classList.add("open");
+        } else {
+            panel.classList.remove("open");
+        }
+
+        // isOpen = !isOpen;
     }
 
-    togglePanel();
+    // handle?.addEventListener("click", (e) => {
+    //     if (!isDragging) {
+    //         togglePanel();
+    //     }
+    // });
+
+    let isDragging = false;
+    let startY = 0;
+    let startHeight = 0;
+
+
+    handle?.addEventListener("pointerdown", (e) => {
+        if (!panel) return;
+
+        isDragging = true;
+        startY = e.clientY;
+
+        // Calculate the current panel height
+        startHeight = panel.getBoundingClientRect().height;
+
+        panel.style.transition = "none";
+
+        // const currentBottom = panel.style.getPropertyValue("--bg-bottom");
+        // startLeft = parseFloat(currentBottom) || startActive.offsetBottom;
+
+        // panel.classList.add("dragging");
+        // panel.classList.remove("glowBox");
+
+        // Browser keeps following the pointer even if it goes outside the element
+        handle.setPointerCapture(e.pointerId);
+    });
+
+    window.addEventListener("pointermove", (e) => {
+        if (!isDragging || !panel) return;
+
+        const deltaY = startY - e.clientY;
+        let newHeight = startHeight + deltaY;
+        
+        const windowHeight = window.innerHeight;
+        // Minimum height is 20% of the window
+        const minHeight = windowHeight * 0.1;
+        // Maximum height is 80% of the window
+        const maxHeight = windowHeight * 0.8;
+
+        if (newHeight < minHeight) newHeight = minHeight;
+        if (newHeight > maxHeight) newHeight = maxHeight;
+
+
+        const windowWidth = window.innerWidth;
+
+        const minWidth = windowWidth * 0.9;
+        const maxWidth = windowWidth * 1;
+
+        // Calculates the height progress as a value between 0 and 1. 0 is the minimum height and 1 the maximum height.
+        const progress = (newHeight - minHeight) / (maxHeight - minHeight);
+
+        // Calculates the new width based on the progress.
+        let newWidth = minWidth + (maxWidth - minWidth) * progress;
+        
+        // Calculates the new bottom position based on the progress.
+        // 2 - (2 * progress) prevents the bottom from going below 0
+        const newBottom = 2 - (2 * progress);
+
+        const newOpacity = 0.2 + (0.4 * progress);
+        
+
+        const newBorderRadius = 36 - (20 * progress);
+
+        const newSearchBoxMarginTop = 1.6 + (4 * progress);
+        const newSearchBoxMarginBottom = 8 - (2 * progress);
+
+
+
+        // const firstLeft = navItems[0].offsetLeft;
+        // const lastLeft = navItems[navItems.length - 1].offsetLeft;
+        // if (newLeft < firstLeft) newLeft = firstLeft;
+        // if (newLeft > lastLeft) newLeft = lastLeft;
+
+
+        panel.style.height = `${newHeight}px`;
+        panel.style.width = `${newWidth}px`;
+        panel.style.bottom = `${newBottom}em`;
+        panel.style.opacity = `${newOpacity}`;
+        panel.style.borderRadius = `${newBorderRadius}px`;
+        
+        searchBoxContainer.style.marginTop = `${newSearchBoxMarginTop}em`;
+        searchBoxContainer.style.marginBottom = `${newSearchBoxMarginBottom}em`;
+    });
+
+    window.addEventListener("pointerup", (e) => {
+        if (!isDragging || !panel) return;
+        isDragging = false;
+
+        panel.style.transition = ""; 
+        if (handle.hasPointerCapture(e.pointerId)) {
+            handle.releasePointerCapture(e.pointerId);
+        }
+
+
+        const distanceMoved = Math.abs(startY - e.clientY);
+
+        if (distanceMoved < 5) {
+            togglePanel();
+            panel.style.height = "";
+            panel.style.width = "";
+            panel.style.bottom = "";
+            panel.style.opacity = "";
+            panel.style.borderRadius = "";
+            searchBoxContainer.style.marginTop = "";
+            searchBoxContainer.style.marginBottom = "";
+            return;
+        }
+
+        const currentHeight = panel.getBoundingClientRect().height;
+        const threshold = window.innerHeight * 0.5;
+
+        if (currentHeight > threshold) {
+            isOpen = true;
+            panel.classList.add("open");
+        } else {
+            isOpen = false;
+            panel.classList.remove("open");
+        }
+
+
+        // The styling for the open state gets removed. Now the CSS will take over
+        panel.style.height = "";
+        panel.style.width = "";
+        panel.style.bottom = "";
+        panel.style.opacity = "";
+        panel.style.borderRadius = "";
+        searchBoxContainer.style.marginTop = "";
+        searchBoxContainer.style.marginBottom = "";
+
+        // panel.classList.remove("dragging");
+        // panel.releasePointerCapture(e.pointerId);
+
+        // const currentBottom = parseFloat(panel.style.getPropertyValue("--bg-bottom")) || 0;
+        // let closestItem = navItems[0];
+        // let minDiff = Infinity;
+        
+        // navItems.forEach(item => {
+        //     const diff = Math.abs(currentBottom - item.offsetBottom);
+        //     if (diff < minDiff) {
+        //         minDiff = diff;
+        //         closestItem = item;
+        //     }
+        // });
+
+        // navItems.forEach(i => i.classList.remove("active"));
+        // closestItem.classList.add("active");
+        // moveBackground(closestItem);
+
+        // setTimeout(() => {
+        // }, 800);
+    });
+
+    // Random words for search
+
+    const searchWords = ["transit", "stop", "route"];
+    const searchText = document.getElementById("searchText");
+
+    setInterval(() => {
+
+        searchText.classList.remove('slideIn');
+        searchText.classList.add('slideOut');
+
+        setTimeout(() => {
+        document.getElementById("searchText").textContent = `${searchWords[Math.floor(Math.random() * searchWords.length)]}`;
+        searchText.classList.remove('slideOut');
+        searchText.classList.add('slideIn');
+    },
+        800);
+}, 2000);
+
+
+    // close button 
+
+    const closeBtn = document.querySelector(".closeBtn");
+    const searchElement = document.getElementById("Search");
+
+    closeBtn?.addEventListener("click", () => {
+        if (!panel) return;
+
+        isOpen = false;
+        panel.classList.remove("open");
+
+        // The styling for the "open" state will be removed and defaulted to the styles in css
+        panel.style.height = "";
+        panel.style.width = "";
+        panel.style.opacity = "";
+
+        if (searchElement) {
+            // The placeholder will be empty
+            searchElement.value = "";
+        }
+    })
+
+
+    // Search functionality for data
+
+    
+
+    // togglePanel();
 
 </script>
 
@@ -37,15 +265,16 @@ import Navigation from './Navigation.astro';
         justify-content: flex-start;
         flex-direction: column;
         position: absolute;
-        bottom: 2.5em;
+        bottom: 2em;
         left: 50%;
         transform: translate(-50%, 150%) scale(0.5);
-        width: 95vw;
-        height: 20vh;
-        background-color: rgba(255, 255, 255, 0.4);
+        width: 90vw;
+        height: 10vh;
+        background-color: rgba(255, 255, 255, 0.2);
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(2px);
-        border-radius: 18px;
+        border-radius: 36px;
+        overflow: hidden;
 
         margin: 0;
         padding: 0;
@@ -53,6 +282,47 @@ import Navigation from './Navigation.astro';
         animation: slideInBottom 1s cubic-bezier(0.33, 0.72, 0, 1.18) 0.5s forwards;
 
         transition: height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 1.4s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+        > #panelHandleContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1em;
+            position: fixed;
+
+            width: 6em;
+            height: 2em;
+            touch-action: none;
+            cursor: grab;
+
+        > span {
+            margin: 0.2em 0em;
+            width: 6em;
+            height: 0.8em;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+
+            cursor: grab;
+            touch-action: none;
+
+            transition: width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+        &:active {
+            /* width: 10em; */
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+            cursor: grabbing;
+        }
+    }
+    }
+
+    /* > h2 {
+        font-size: 28px;
+    } */
     }
 
     .panelBox.open {
@@ -60,20 +330,249 @@ import Navigation from './Navigation.astro';
         bottom: 0;
         width: 100vw;
         height: 80vh;
-        background-color: rgba(255, 255, 255, 0.6);
+        background-color: rgba(255, 255, 255, 0.4);
         backdrop-filter: blur(8px);
 
+        > #panelHandleContainer {
+
+        > span:first-of-type {
+            top: 0;
+            left: 10%;
+            width: 3em;
+            transform-origin: right;
+            transform: translate(50%, -50%) rotate(-35deg);
+            background-color: rgba(0, 0, 0, 1);
+        }
+        > span:last-of-type {
+            top: 0;
+            left: 10%;
+            width: 3em;
+            transform: translate(0%, -50%) rotate(35deg);
+            transform-origin: left;
+            background-color: rgba(0, 0, 0, 1);
+        }
     }
 
-    span {
-        margin: 0.1em 0em;
-        width: 6em;
-        height: 0.8em;
-        background-color: rgba(0, 0, 0, 0.8);
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        position: fixed;
+        > .searchBoxContainer {
+            width: 90%;
+            margin-top: 4em;
+            margin-bottom: 2em;
+
+        > .searchBox {
+            width: 100%;
+            
+            /* background-color: rgba(255, 255, 255, 0.6); */
+            padding: 0;
+            /* position: relative; */
+
+            > #Search {
+                width: 100%;
+            }
+
+            > #searchTextBox {
+                transform: translate(7%, -50%);
+            }
+        }
+            
+        }
+
     }
+
+    .searchBoxContainer {
+        width: 90%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        color: rgba(0, 0, 0, 0.8);
+        border-radius: 24px;
+        margin-bottom: 8em;
+        margin-top: 1.6em;
+        /* box-shadow: 0 0px 10px rgba(0, 0, 0, 0.8); */
+        position: relative;
+        
+        transition: margin-bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), margin-top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+    > .searchBox {
+        width: 100%;
+        border-radius: 24px;
+
+        > #searchTextBox {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            transform: translate(12%, -50%);
+            opacity: 1;
+            font-size: 22px;
+            pointer-events: none;
+            overflow: hidden;
+
+            transition: opacity 0.3s ease-in-out, transform 0.4s ease-in-out, font-size 0.6s ease-in-out;
+
+        > #searchText {
+            display: inline-block;
+            font-weight: 700;
+            /* position: absolute;
+            top: 50%;
+            left: 0%;
+            transform: translate(12%, -50%);
+            opacity: 1;
+            font-size: 22px;
+            display: inline-block;
+            pointer-events: none;
+
+            transition: opacity 0.8s ease-in-out, transform 0.4s ease-in-out, font-size 0.6s ease-in-out; */
+        }
+    }
+
+        > #Search {
+            width: 100%;
+            border: 2px solid green;
+            height: 100%;
+            padding: 0.5em;
+            border-radius: inherit;
+            font-size: 22px;
+            border: none;
+            outline: none;
+            box-shadow: 0 0px 10px rgba(0, 0, 0, 0.8);
+            /* background-color: rgba(255, 255, 255, 0.4); */
+            background-color: transparent;
+            /* background-color: red; */
+
+            transition: background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+        }
+
+        
+    }
+    > .closeBtn {
+            width: 4.5em;
+            height: 3em;
+            border-radius: 40%;
+
+            position: absolute;
+            right: 10%;
+            top: 50%;
+            transform: translate(0%, -50%);
+            opacity: 0;
+            z-index: -1;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: transparent;
+
+            border: none;
+            box-shadow: 0 0px 0px rgba(0, 0, 0, 0.6);
+
+            transition: transform 0.4s cubic-bezier(0.33, 0.72, 0, 1.18), right 0.4s cubic-bezier(0.33, 0.72, 0, 1.18), top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.6s cubic-bezier(0.33, 0.72, 0, 1.18) 0.6s;
+
+            > span {
+                width: 3em;
+                height: 0.5em;
+                background-color: rgba(0, 0, 0, 1);
+                border-radius: 18px;
+                z-index: 1;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(0deg);
+                pointer-events: none;
+
+                transition: transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+            }
+        }
+}
+
+        &:has(#Search:not(:placeholder-shown)) #searchTextBox {
+            opacity: 0;
+            transform: translate(100%, -50%);
+            font-size: 16px;
+
+        }
+
+        &:has(#Search:focus) .panelBox {
+            border-radius: 20px 20px 0 0;
+            bottom: 0;
+            width: 100vw;
+            height: 80vh;
+            background-color: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px);
+
+            > #panelHandleContainer {
+
+            > span:first-of-type {
+                top: 0;
+                left: 10%;
+                width: 3em;
+                transform-origin: right;
+                transform: translate(50%, -50%) rotate(-35deg);
+                background-color: rgba(0, 0, 0, 1);
+            }
+            > span:last-of-type {
+                top: 0;
+                left: 10%;
+                width: 3em;
+                transform: translate(0%, -50%) rotate(35deg);
+                transform-origin: left;
+                background-color: rgba(0, 0, 0, 1);
+            }
+        }
+
+            > .searchBoxContainer {
+                width: 90%;
+                margin-top: 4em;
+                margin-bottom: 2em;
+
+            > .searchBox {
+                width: 100%;
+                
+
+                /* box-shadow: 0 0px 30px rgba(0, 0, 0, 1); */
+
+                > #Search {
+                    /* background-color: red; */
+                    box-shadow: 0 0px 30px rgba(0, 0, 0, 1);
+                    width: 80%;
+                }
+
+                
+            }
+
+            > .closeBtn {
+                    margin: 0 auto;
+                    width: 4em;
+                    height: 4em;
+                    border-radius: 50%;
+                    position: absolute;
+                    right: 0;
+                    top: 50%;
+                    transform: translate(0%, -50%);
+                    opacity: 1;
+                    pointer-events: all;
+                    z-index: 1000;
+                    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8);
+                    
+
+                > span:first-child {
+                    transform: translate(-50%, -50%) rotate(45deg);
+                }
+                > span:last-child {
+                    transform: translate(-50%, -50%) rotate(-45deg);
+                }
+            }
+        }
+        }
+        
+
+        .slideIn {
+            animation: SlideInText 0.8s ease-in-out forwards;
+        }
+
+        .slideOut {
+            animation: SlideOutText 0.8s ease-in-out forwards;
+        }
+
+    
     
 
     @keyframes slideInBottom {
@@ -84,6 +583,50 @@ import Navigation from './Navigation.astro';
         100% {
             transform: translate(-50%, 0) scale(1);
             opacity: 1;
+        }
+    }
+
+    @keyframes SlideInText {
+        0% {
+            opacity: 0;
+            transform: translateY(-100%) scale(0.8);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0%) scale(1);
+        }
+    }
+
+    @keyframes SlideOutText {
+        0% {
+            opacity: 1;
+            transform: translateY(0%) scale(1);
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(100%) scale(0.8);
+        }
+    }
+
+    /* Desktop layout */
+
+    /* .panelBox {
+        width: if(
+            media(max-width: 768px): 80vw,
+            else: 20vw
+        )
+    } */
+
+    @media (min-width: 1200px) {
+        .panelBox {
+            bottom: .5em;
+            left: 11%;
+            transform: translate(-50%, 150%) scale(0.5);
+            width: 20vw;
+        }
+
+        .panelBox.open {
+            width: 20vw;
         }
     }
 </style>

@@ -193,7 +193,16 @@ console.log('Leaflet API component loaded');
                 // renderer: myRenderer
             })
             // map.addLayer(markers);
-            marker.bindPopup(`<b>${rawName || "Unknown stops"}</b><br>Stop name: ${code}`);
+            marker.bindPopup(`
+            <div class="livePopupContainer" style="background-color: rgba(255, 255, 255, 0.8); box-shadow: 0px 0px 20px white !important;">
+                        <h3 style="color: black">Stop: ${rawName}</h3>
+                        <ul>
+                            <li style="color: black"><b>bla</b><br> ${rawLon}</li>
+                            <li style="color: black"><b>bla</b><br> ${rawLat}</li>
+                            
+                        </ul>
+                    </div>
+            `);
             markersToAdd.push(marker);
         } else {
             console.error(`Invalid coordinates for stop ID ${id}: lat=${lat}, lon=${lon}`);
@@ -315,8 +324,22 @@ console.log('Leaflet API component loaded');
 
         // flyTo Animation and location fetch on delay
 
+        // let userLocationMarker;
+        let userCircle;
+
         map.on('locationfound', function(e) {
             console.log('Location FOUND...');
+            // userLocationMarker = L.marker(e.latlng).addTo(map)
+            // .bindPopup(`
+            // You are here!`)
+
+            userCircle = L.circle(e.latlng, {
+                radius: 5,
+                color: 'blue',
+                fillColor: '#3388ff',
+                fillOpacity: 1,
+                className: 'userLocation'
+            }).addTo(map);
 
             map.flyTo(e.latlng, 16, {
                 animate: true,
@@ -411,9 +434,11 @@ console.log('Leaflet API component loaded');
 <!-- is:global is used to also change styling in other files. For instance in leaflet -->
 <style is:global>
     .leaflet-top {
-        margin-top: 65vh !important;
+        margin-top: 75vh !important;
         margin-left: 85vw !important;
         transform: scale(1.5);
+
+        transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
     }
 
     .leaflet-bar {
@@ -514,6 +539,10 @@ console.log('Leaflet API component loaded');
     }
 }
 
+    .leaflet-container .leaflet-control-attribution {
+        display: none !important;
+    }
+
 
     @keyframes slideOutZoom {
         0% {
@@ -548,6 +577,15 @@ console.log('Leaflet API component loaded');
             z-index: 9999;
             opacity: 1;
             transform: translate(0px, 15px);
+        }
+    }
+
+    /* Desktop size */
+
+    @media (min-width: 1200px) {
+        .leaflet-top {
+            margin-top: 90vh !important;
+            margin-left: 22vw !important;
         }
     }
 </style>

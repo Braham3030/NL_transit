@@ -94,7 +94,9 @@ import Route from './Route.astro';
         ul.classList.remove("dragging");
         ul.releasePointerCapture(e.pointerId);
 
+        // The background will snap to the closest item when released
         const currentLeft = parseFloat(ul.style.getPropertyValue("--bg-left")) || 0;
+        // closestItem here is the navItem that is closest to the current background
         let closestItem = navItems[0];
         let minDiff = Infinity;
         
@@ -181,9 +183,15 @@ import Route from './Route.astro';
                 font-size: 20px;
                 border-radius: 8px;
                 user-select: none;
+                transform-origin: center;
+                text-shadow: none;
+
+                transition: transform 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
 
                 &.active {
                     color: black;
+                    transform: scale(1.5);
+                    text-shadow: 0 20px 10px rgba(0, 0, 0, 0.5);
                 }
                 
 
