@@ -45,6 +45,12 @@ body {
     }
 }
 
+body:has(.panelBox.open) .leaflet-top {
+    margin-top: 80vh !important;
+    opacity: 0;
+}
+
+
 @keyframes slideDown {
     from {
         transform: translateY(-100%);

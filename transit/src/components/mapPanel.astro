@@ -3,7 +3,10 @@ import Navigation from './Navigation.astro';
 ---
 
 <div id="bottomPanel" class="panelBox">
-    <span id="panelHandle"></span>
+    <span id="panelHandleContainer">
+        <span class="panelHandle"></span>
+        <span class="panelHandle"></span>
+    </span>
     <!-- <h2>Panel</h2> -->
     <div class="searchBoxContainer">
     <label for="Search" class="searchBox">
@@ -22,7 +25,8 @@ import Navigation from './Navigation.astro';
 <script>
     // @ts-nocheck
     const panel = document.getElementById("bottomPanel");
-    const handle = document.getElementById("panelHandle");
+    const handle = document.getElementById("panelHandleContainer");
+    const searchBoxContainer = document.querySelector(".searchBoxContainer");
 
     // handle?.addEventListener("click", () => {
     //     if (!panel) return;
@@ -55,6 +59,7 @@ import Navigation from './Navigation.astro';
     let isDragging = false;
     let startY = 0;
     let startHeight = 0;
+
 
     handle?.addEventListener("pointerdown", (e) => {
         if (!panel) return;
@@ -92,6 +97,32 @@ import Navigation from './Navigation.astro';
         if (newHeight < minHeight) newHeight = minHeight;
         if (newHeight > maxHeight) newHeight = maxHeight;
 
+
+        const windowWidth = window.innerWidth;
+
+        const minWidth = windowWidth * 0.9;
+        const maxWidth = windowWidth * 1;
+
+        // Calculates the height progress as a value between 0 and 1. 0 is the minimum height and 1 the maximum height.
+        const progress = (newHeight - minHeight) / (maxHeight - minHeight);
+
+        // Calculates the new width based on the progress.
+        let newWidth = minWidth + (maxWidth - minWidth) * progress;
+        
+        // Calculates the new bottom position based on the progress.
+        // 2 - (2 * progress) prevents the bottom from going below 0
+        const newBottom = 2 - (2 * progress);
+
+        const newOpacity = 0.2 + (0.4 * progress);
+        
+
+        const newBorderRadius = 36 - (20 * progress);
+
+        const newSearchBoxMarginTop = 1.6 + (4 * progress);
+        const newSearchBoxMarginBottom = 8 - (2 * progress);
+
+
+
         // const firstLeft = navItems[0].offsetLeft;
         // const lastLeft = navItems[navItems.length - 1].offsetLeft;
         // if (newLeft < firstLeft) newLeft = firstLeft;
@@ -99,6 +130,13 @@ import Navigation from './Navigation.astro';
 
 
         panel.style.height = `${newHeight}px`;
+        panel.style.width = `${newWidth}px`;
+        panel.style.bottom = `${newBottom}em`;
+        panel.style.opacity = `${newOpacity}`;
+        panel.style.borderRadius = `${newBorderRadius}px`;
+        
+        searchBoxContainer.style.marginTop = `${newSearchBoxMarginTop}em`;
+        searchBoxContainer.style.marginBottom = `${newSearchBoxMarginBottom}em`;
     });
 
     window.addEventListener("pointerup", (e) => {
@@ -116,6 +154,12 @@ import Navigation from './Navigation.astro';
         if (distanceMoved < 5) {
             togglePanel();
             panel.style.height = "";
+            panel.style.width = "";
+            panel.style.bottom = "";
+            panel.style.opacity = "";
+            panel.style.borderRadius = "";
+            searchBoxContainer.style.marginTop = "";
+            searchBoxContainer.style.marginBottom = "";
             return;
         }
 
@@ -130,7 +174,15 @@ import Navigation from './Navigation.astro';
             panel.classList.remove("open");
         }
 
+
+        // The styling for the open state gets removed. Now the CSS will take over
         panel.style.height = "";
+        panel.style.width = "";
+        panel.style.bottom = "";
+        panel.style.opacity = "";
+        panel.style.borderRadius = "";
+        searchBoxContainer.style.marginTop = "";
+        searchBoxContainer.style.marginBottom = "";
 
         // panel.classList.remove("dragging");
         // panel.releasePointerCapture(e.pointerId);
@@ -213,15 +265,15 @@ import Navigation from './Navigation.astro';
         justify-content: flex-start;
         flex-direction: column;
         position: absolute;
-        bottom: 2.5em;
+        bottom: 2em;
         left: 50%;
         transform: translate(-50%, 150%) scale(0.5);
-        width: 95vw;
+        width: 90vw;
         height: 10vh;
         background-color: rgba(255, 255, 255, 0.2);
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(2px);
-        border-radius: 18px;
+        border-radius: 36px;
         overflow: hidden;
 
         margin: 0;
@@ -231,25 +283,41 @@ import Navigation from './Navigation.astro';
 
         transition: height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 1.4s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
 
+        > #panelHandleContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1em;
+            position: fixed;
+
+            width: 6em;
+            height: 2em;
+            touch-action: none;
+            cursor: grab;
+
         > span {
-        margin: 0.2em 0em;
-        width: 6em;
-        height: 0.8em;
-        background-color: rgba(0, 0, 0, 0.8);
-        border-radius: 10px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        position: fixed;
+            margin: 0.2em 0em;
+            width: 6em;
+            height: 0.8em;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1000;
 
-        cursor: grab;
-        touch-action: none;
+            cursor: grab;
+            touch-action: none;
 
-        transition: width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+            transition: width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
 
         &:active {
-            width: 10em;
+            /* width: 10em; */
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
             cursor: grabbing;
         }
+    }
     }
 
     /* > h2 {
@@ -265,8 +333,29 @@ import Navigation from './Navigation.astro';
         background-color: rgba(255, 255, 255, 0.4);
         backdrop-filter: blur(8px);
 
+        > #panelHandleContainer {
+
+        > span:first-of-type {
+            top: 0;
+            left: 10%;
+            width: 3em;
+            transform-origin: right;
+            transform: translate(50%, -50%) rotate(-35deg);
+            background-color: rgba(0, 0, 0, 1);
+        }
+        > span:last-of-type {
+            top: 0;
+            left: 10%;
+            width: 3em;
+            transform: translate(0%, -50%) rotate(35deg);
+            transform-origin: left;
+            background-color: rgba(0, 0, 0, 1);
+        }
+    }
+
         > .searchBoxContainer {
             width: 90%;
+            margin-top: 4em;
             margin-bottom: 2em;
 
         > .searchBox {
@@ -290,19 +379,18 @@ import Navigation from './Navigation.astro';
     }
 
     .searchBoxContainer {
-
-        width: 80%;
+        width: 90%;
         display: flex;
         align-items: center;
         justify-content: flex-start;
         color: rgba(0, 0, 0, 0.8);
         border-radius: 24px;
-        margin-bottom: 4em;
+        margin-bottom: 8em;
         margin-top: 1.6em;
         /* box-shadow: 0 0px 10px rgba(0, 0, 0, 0.8); */
         position: relative;
         
-        transition: margin-bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+        transition: margin-bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), margin-top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
 
     > .searchBox {
         width: 100%;
@@ -403,15 +491,37 @@ import Navigation from './Navigation.astro';
         }
 
         &:has(#Search:focus) .panelBox {
-             border-radius: 20px 20px 0 0;
+            border-radius: 20px 20px 0 0;
             bottom: 0;
             width: 100vw;
             height: 80vh;
             background-color: rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(8px);
 
+            > #panelHandleContainer {
+
+            > span:first-of-type {
+                top: 0;
+                left: 10%;
+                width: 3em;
+                transform-origin: right;
+                transform: translate(50%, -50%) rotate(-35deg);
+                background-color: rgba(0, 0, 0, 1);
+            }
+            > span:last-of-type {
+                top: 0;
+                left: 10%;
+                width: 3em;
+                transform: translate(0%, -50%) rotate(35deg);
+                transform-origin: left;
+                background-color: rgba(0, 0, 0, 1);
+            }
+        }
+
             > .searchBoxContainer {
                 width: 90%;
+                margin-top: 4em;
+                margin-bottom: 2em;
 
             > .searchBox {
                 width: 100%;
