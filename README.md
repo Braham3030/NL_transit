@@ -173,3 +173,6 @@ export async function GET() {
 
 ## AI usage
 [Gemini_static_api_error](https://gemini.google.com/share/1037ffcae5ab)
+
+## Leaflet styling
+[maptiler](https://www.npmjs.com/package/@maptiler/sdk)
