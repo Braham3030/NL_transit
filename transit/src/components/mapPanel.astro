@@ -87,10 +87,10 @@ import Navigation from './Navigation.astro';
         // Minimum height is 20% of the window
         const minHeight = windowHeight * 0.1;
         // Maximum height is 80% of the window
-        const maxheight = windowHeight * 0.8;
+        const maxHeight = windowHeight * 0.8;
 
         if (newHeight < minHeight) newHeight = minHeight;
-        if (newHeight > maxheight) newHeight = maxHeight;
+        if (newHeight > maxHeight) newHeight = maxHeight;
 
         // const firstLeft = navItems[0].offsetLeft;
         // const lastLeft = navItems[navItems.length - 1].offsetLeft;
@@ -495,4 +495,24 @@ import Navigation from './Navigation.astro';
     }
 
     /* Desktop layout */
+
+    /* .panelBox {
+        width: if(
+            media(max-width: 768px): 80vw,
+            else: 20vw
+        )
+    } */
+
+    @media (min-width: 1200px) {
+        .panelBox {
+            bottom: .5em;
+            left: 11%;
+            transform: translate(-50%, 150%) scale(0.5);
+            width: 20vw;
+        }
+
+        .panelBox.open {
+            width: 20vw;
+        }
+    }
 </style>
