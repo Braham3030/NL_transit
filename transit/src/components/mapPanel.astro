@@ -4,7 +4,15 @@ import Navigation from './Navigation.astro';
 
 <div id="bottomPanel" class="panelBox">
     <span id="panelHandle"></span>
-    <h2>Panel</h2>
+    <!-- <h2>Panel</h2> -->
+    <label for="Search" class="searchBox">
+        <input type="text" id="Search" placeholder="">
+        <span id="searchTextBox">Search for <span id="searchText"></span></span>
+        <button class="closeBtn">
+            <span></span>
+            <span></span>
+        </button>
+    </label>
     <Navigation />
 </div>
 
@@ -35,13 +43,11 @@ import Navigation from './Navigation.astro';
         // isOpen = !isOpen;
     }
 
-
     // handle?.addEventListener("click", (e) => {
     //     if (!isDragging) {
     //         togglePanel();
     //     }
     // });
-
 
     let isDragging = false;
     let startY = 0;
@@ -81,7 +87,7 @@ import Navigation from './Navigation.astro';
         const maxheight = windowHeight * 0.8;
 
         if (newHeight < minHeight) newHeight = minHeight;
-        if (newHeight > maxheight) newHeight = maxheight;
+        if (newHeight > maxheight) newHeight = maxHeight;
 
         // const firstLeft = navItems[0].offsetLeft;
         // const lastLeft = navItems[navItems.length - 1].offsetLeft;
@@ -123,9 +129,6 @@ import Navigation from './Navigation.astro';
 
         panel.style.height = "";
 
-
-
-
         // panel.classList.remove("dragging");
         // panel.releasePointerCapture(e.pointerId);
 
@@ -149,6 +152,23 @@ import Navigation from './Navigation.astro';
         // }, 800);
     });
 
+    // Random words for search
+
+    const searchWords = ["transit", "stop", "route"];
+    const searchText = document.getElementById("searchText");
+
+    setInterval(() => {
+
+        searchText.classList.remove('slideIn');
+        searchText.classList.add('slideOut');
+
+        setTimeout(() => {
+        document.getElementById("searchText").textContent = `${searchWords[Math.floor(Math.random() * searchWords.length)]}`;
+        searchText.classList.remove('slideOut');
+        searchText.classList.add('slideIn');
+    },
+        800);
+}, 2000);
 
 
     // togglePanel();
@@ -167,11 +187,12 @@ import Navigation from './Navigation.astro';
         left: 50%;
         transform: translate(-50%, 150%) scale(0.5);
         width: 95vw;
-        height: 20vh;
-        background-color: rgba(255, 255, 255, 0.4);
+        height: 10vh;
+        background-color: rgba(255, 255, 255, 0.2);
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(2px);
         border-radius: 18px;
+        overflow: hidden;
 
         margin: 0;
         padding: 0;
@@ -179,6 +200,31 @@ import Navigation from './Navigation.astro';
         animation: slideInBottom 1s cubic-bezier(0.33, 0.72, 0, 1.18) 0.5s forwards;
 
         transition: height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 1.4s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+        > span {
+        margin: 0.2em 0em;
+        width: 6em;
+        height: 0.8em;
+        background-color: rgba(0, 0, 0, 0.8);
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        position: fixed;
+
+        cursor: grab;
+        touch-action: none;
+
+        transition: width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+        &:active {
+            width: 10em;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+            cursor: grabbing;
+        }
+    }
+
+    /* > h2 {
+        font-size: 28px;
+    } */
     }
 
     .panelBox.open {
@@ -186,27 +232,177 @@ import Navigation from './Navigation.astro';
         bottom: 0;
         width: 100vw;
         height: 80vh;
-        background-color: rgba(255, 255, 255, 0.6);
+        background-color: rgba(255, 255, 255, 0.4);
         backdrop-filter: blur(8px);
 
+        > .searchBox {
+            width: 90%;
+            margin-bottom: 2em;
+            background-color: rgba(255, 255, 255, 0.6);
+            padding: 0;
+            position: relative;
+
+            > #Search {
+                width: 100%;
+            }
+
+            > #searchText {
+                transform: translate(7%, -50%);
+            }
+
+            
+        }
+
     }
 
-    span {
-        margin: 0.1em 0em;
-        width: 6em;
-        height: 0.8em;
-        background-color: rgba(0, 0, 0, 0.8);
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        position: fixed;
+    .searchBox {
+        width: 80%;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        color: rgba(0, 0, 0, 0.8);
+        border-radius: 24px;
+        margin-bottom: 4em;
+        margin-top: 1.6em;
+        /* box-shadow: 0 0px 10px rgba(0, 0, 0, 0.8); */
+        position: relative;
+        
+        transition: margin-bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
 
-        cursor: grab;
-        touch-action: none;
+        > #searchTextBox {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            transform: translate(12%, -50%);
+            opacity: 1;
+            font-size: 22px;
+            pointer-events: none;
+            overflow: hidden;
 
-        &:active {
-            cursor: grabbing;
+            transition: opacity 0.3s ease-in-out, transform 0.4s ease-in-out, font-size 0.6s ease-in-out;
+
+        > #searchText {
+            display: inline-block;
+            font-weight: 700;
+            /* position: absolute;
+            top: 50%;
+            left: 0%;
+            transform: translate(12%, -50%);
+            opacity: 1;
+            font-size: 22px;
+            display: inline-block;
+            pointer-events: none;
+
+            transition: opacity 0.8s ease-in-out, transform 0.4s ease-in-out, font-size 0.6s ease-in-out; */
         }
     }
+
+        > #Search {
+            width: 100%;
+            border: 2px solid green;
+            height: 100%;
+            padding: 0.5em;
+            border-radius: inherit;
+            font-size: 22px;
+            border: none;
+            outline: none;
+            box-shadow: 0 0px 10px rgba(0, 0, 0, 0.8);
+            background-color: rgba(255, 255, 255, 0.4);
+            /* background-color: red; */
+
+            transition: background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+        }
+
+        > .closeBtn {
+            width: 4em;
+            height: 4em;
+            border-radius: 50%;
+
+            position: absolute;
+            right: 10%;
+            top: 50%;
+            transform: translate(0%, -50%);
+            opacity: 0;
+            z-index: -1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border: none;
+            box-shadow: 0 0px 20px rgba(0, 0, 0, 0.8);
+
+            transition: transform 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), right 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+            > span {
+                width: 3em;
+                height: 0.5em;
+                background-color: rgba(0, 0, 0, 1);
+                border-radius: 18px;
+                z-index: 1;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%) rotate(0deg);
+
+                transition: transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+            }
+        }
+    }
+
+        &:has(#Search:not(:placeholder-shown)) #searchTextBox {
+            opacity: 0;
+            transform: translate(100%, -50%);
+            font-size: 16px;
+
+        }
+
+        &:has(#Search:focus) .panelBox {
+            height: 80vh;
+
+            > .searchBox {
+                width: 90%;
+                margin-bottom: 2em;
+
+                /* box-shadow: 0 0px 30px rgba(0, 0, 0, 1); */
+
+                > #Search {
+                    /* background-color: red; */
+                    box-shadow: 0 0px 30px rgba(0, 0, 0, 1);
+                    width: 80%;
+                }
+
+                > .closeBtn {
+                    margin: 0 auto;
+                    width: 4em;
+                    height: 4em;
+                    border-radius: 50%;
+                    position: absolute;
+                    right: 0;
+                    top: 50%;
+                    transform: translate(0%, -50%);
+                    opacity: 1;
+
+                > span:first-child {
+                    transform: translate(-50%, -50%) rotate(45deg);
+                }
+                > span:last-child {
+                    transform: translate(-50%, -50%) rotate(-45deg);
+                }
+            }
+            }
+        }
+        
+
+        .slideIn {
+            animation: SlideInText 0.8s ease-in-out forwards;
+        }
+
+        .slideOut {
+            animation: SlideOutText 0.8s ease-in-out forwards;
+        }
+
+    
     
 
     @keyframes slideInBottom {
@@ -217,6 +413,28 @@ import Navigation from './Navigation.astro';
         100% {
             transform: translate(-50%, 0) scale(1);
             opacity: 1;
+        }
+    }
+
+    @keyframes SlideInText {
+        0% {
+            opacity: 0;
+            transform: translateY(-100%) scale(0.8);
+        }
+        100% {
+            opacity: 1;
+            transform: translateY(0%) scale(1);
+        }
+    }
+
+    @keyframes SlideOutText {
+        0% {
+            opacity: 1;
+            transform: translateY(0%) scale(1);
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(100%) scale(0.8);
         }
     }
 </style>
