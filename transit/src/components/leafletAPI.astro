@@ -324,8 +324,22 @@ console.log('Leaflet API component loaded');
 
         // flyTo Animation and location fetch on delay
 
+        // let userLocationMarker;
+        let userCircle;
+
         map.on('locationfound', function(e) {
             console.log('Location FOUND...');
+            // userLocationMarker = L.marker(e.latlng).addTo(map)
+            // .bindPopup(`
+            // You are here!`)
+
+            userCircle = L.circle(e.latlng, {
+                radius: 5,
+                color: 'blue',
+                fillColor: '#3388ff',
+                fillOpacity: 1,
+                className: 'userLocation'
+            }).addTo(map);
 
             map.flyTo(e.latlng, 16, {
                 animate: true,
