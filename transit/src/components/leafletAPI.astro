@@ -333,9 +333,10 @@ console.log('Leaflet API component loaded');
             // You are here!`)
 
             userCircle = L.circle(e.latlng, {
-                radius: 5,
-                color: 'blue',
-                fillColor: '#3388ff',
+                radius: 15,
+                color: '#00ff00',
+                weight: 5,
+                fillColor: 'rgba(0, 255, 0, 0.2)',
                 fillOpacity: 1,
                 className: 'userLocation'
             }).addTo(map);
@@ -643,6 +644,26 @@ console.log('Leaflet API component loaded');
     background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(0% - 2px),50% calc(100% + 2px),100% 50%,100% calc(0% - 2px),100% calc(100% + 2px);
  }
 }
+
+/* .userLocation {
+    transform-origin: center;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        stroke-opacity: 1;
+        stroke-width: 2;
+    }
+    50% {
+        stroke-opacity: 0.3;
+        stroke-width: 10;
+    }
+    100% {
+        stroke-opacity: 1;
+        stroke-width: 2;
+    }
+} */
 
 /* ------ POPUP STYLING ------ */
 
