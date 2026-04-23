@@ -1,0 +1,58 @@
+---
+---
+
+<div>
+    <h3>Live transit times</h3>
+    <ul>
+        <li>Test time 1</li>
+        <li>Test time 2</li>
+        <li>Test time 3</li>
+        <li>Test time 4</li>
+        <li>Test time 5</li>
+        <li>Test time 6</li>
+        <li>Test time 7</li>
+        <li>Test time 8</li>
+        <li>Test time 9</li>
+    </ul>
+</div>
+
+<style>
+    div {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        margin-bottom: 20em;
+
+        > ul {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            flex-direction: column;
+            gap: 1em;
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            background-color: transparent;
+
+            height: 8em;
+            overflow-y: scroll;
+            overflow-x: visible;
+            scroll-snap-type: mandatory;
+            scrollbar-color: transparent transparent;
+
+            > li {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 18px;
+                height: 6em;
+                width: 10em;
+
+                background-color: rgba(255, 255, 255, 0.2);
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(2px);
+            }
+        }
+    }
+</style>
