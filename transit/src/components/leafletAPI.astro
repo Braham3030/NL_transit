@@ -190,7 +190,6 @@ console.log('Leaflet API component loaded');
                 weight: 1,
                 opacity: 1,
                 fillOpacity: 0.8
-                // renderer: myRenderer
             })
             // map.addLayer(markers);
             marker.bindPopup(`
@@ -434,8 +433,8 @@ console.log('Leaflet API component loaded');
 <!-- is:global is used to also change styling in other files. For instance in leaflet -->
 <style is:global>
     .leaflet-top {
-        margin-top: 75vh !important;
-        margin-left: 85vw !important;
+        margin-top: 68vh !important;
+        margin-left: 83vw !important;
         transform: scale(1.5);
 
         transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
@@ -443,8 +442,8 @@ console.log('Leaflet API component loaded');
 
     .leaflet-bar {
         border: none !important;
-        background-color: rgba(0, 0, 0, 0.1) !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+        background-color: rgba(255, 255, 255, 0.2) !important;
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3) !important;
         border-radius: 12px !important;
         overflow: hidden !important;
         transform: translateX(100px) scale(0);
@@ -453,6 +452,9 @@ console.log('Leaflet API component loaded');
     }
 
     .leaflet-control-zoom a {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         width: 30px !important;
         height: 30px !important;
         line-height: 30px !important;
@@ -466,6 +468,17 @@ console.log('Leaflet API component loaded');
         &:active {
             background-color: rgba(0, 0, 0, 0.6) !important;
             transform: scale(0.85) !important;
+        }
+
+        > span {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 24px !important;
+            color: black !important;
+            font-weight: 800 !important;
+            padding: 0 !important;
+            height: 25px !important;
         }
     }
 
