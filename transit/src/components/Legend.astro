@@ -1,0 +1,124 @@
+---
+---
+
+<div class="Legend">
+    <details>
+    <summary>Legend</summary>
+    <ul>
+        <li><strong>Stops:</strong> Stops for transit. <div class="stopsLegend"></div></li>
+        <li><strong>Bus:</strong> A bus route.</li>
+        <li><strong>Subway:</strong> A subway route.</li>
+        <li><strong>Tram:</strong> A tram route.</li>
+    </ul>
+    </details>
+</div>
+
+<style>
+    .Legend {
+        position: fixed;
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        bottom: 8.5em;
+        right: 1.3em;
+        transform: translate(-20%, -50%);
+        z-index: 9999;
+        width: auto;
+        height: auto;
+        background-color: transparent;
+        padding: 0;
+        border-radius: 0.5em;
+
+        transition: transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), right 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), margin-top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+        > details {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0.5em;
+            border-radius: 16px;
+
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(2px);
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            transform: translate(0, 0);
+            transform-origin: bottom right;
+
+            transition: width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), right 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+            animation: Shrink 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) forwards;
+
+            > summary {
+                font-size: 22px;
+                font-weight: bold;
+                cursor: pointer;
+                list-style-type: none;
+                padding-top: 0.2em;
+                padding-bottom: 0.2em;
+            }
+
+        > ul {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3em;
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            margin-top: 1em;
+
+            /* cubic-bezier(0.33, 0.72, 0, 1.18) forwards */
+
+            > li {
+                display: flex;
+                align-items: center;
+                justify-content: flex-start;
+                flex-direction: row;
+                gap: 0.5em;
+
+                font-size: 20px;
+
+                > .stopsLegend {
+                    width: 1em;
+                    height: 1em;
+                    border-radius: 50%;
+                    border: 2px solid white;
+                    background-color: #3388ff;
+                }
+            }
+        }
+    }
+
+    > details[open] {
+        width: 20em;
+        bottom: 0;
+        right: 0;
+        transform: translate(0, 0);
+        align-items: flex-start;
+        justify-content: flex-start;
+        /* height: auto; */
+        animation: enLarge 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) forwards;
+    }
+}
+
+@keyframes enLarge {
+    from {
+        width: 7em;
+    }
+    to {
+        width: 20em;
+    }
+}
+
+@keyframes Shrink {
+    from {
+        width: 20em;
+    }
+    to {
+        width: 7em;
+    }
+}
+</style>

@@ -2,6 +2,7 @@
 import LeafletMap from '../components/leafletAPI.astro';
 import MapPanel from '../components/mapPanel.astro';
 import Header from '../components/Header.astro';
+import Legend from '../components/Legend.astro';
 ---
 
 <html lang="en">
@@ -12,11 +13,12 @@ import Header from '../components/Header.astro';
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
 		<link rel="stylesheet" href="styles/styles.css" />
-		<title>Astro</title>
+		<title>NL Transit</title>
 	</head>
 	<body>
 		<Header />
 		<LeafletMap />
+		<Legend />
 		<MapPanel />
 	</body>
 </html>

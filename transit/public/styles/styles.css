@@ -54,6 +54,16 @@ body:has(.panelBox.open) .leaflet-top {
     opacity: 0;
 }
 
+body:has(.panelBox.open) .Legend {
+    margin-top: 80dvh;
+    opacity: 0;
+}
+
+body:has(details[open]) .leaflet-top {
+    margin-top: 55dvh !important;
+    /* opacity: 0; */
+}
+
 
 @keyframes slideDown {
     from {
