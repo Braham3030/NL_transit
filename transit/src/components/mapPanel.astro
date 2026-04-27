@@ -297,9 +297,14 @@ import Navigation from './Navigation.astro';
         transform: translate(-50%, 150%) scale(0.5);
         width: 90vw;
         height: 10vh;
-        background-color: rgba(255, 255, 255, 0.2);
+        /* background-color: rgba(255, 255, 255, 0.2);
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(2px);
+        backdrop-filter: blur(2px); */
+
+        background-color: rgba(0, 0, 0, 0.8);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(5px);
+        
         border-radius: 36px;
         overflow: hidden;
 
@@ -323,9 +328,9 @@ import Navigation from './Navigation.astro';
             cursor: grab;
 
         > span {
-            margin: 0.2em 0em;
+            margin: 0.6em 0em;
             width: 6em;
-            height: 0.8em;
+            height: 0.6em;
             background-color: rgba(0, 0, 0, 0.8);
             border-radius: 10px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
@@ -357,8 +362,12 @@ import Navigation from './Navigation.astro';
         bottom: 0;
         width: 100vw;
         height: 80vh;
-        background-color: rgba(255, 255, 255, 0.4);
-        backdrop-filter: blur(8px);
+        /* background-color: rgba(255, 255, 255, 0.4);
+        backdrop-filter: blur(8px); */
+
+        background-color: rgba(0, 0, 0, 0.8);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
 
         > #panelHandleContainer {
 
@@ -369,6 +378,7 @@ import Navigation from './Navigation.astro';
             transform-origin: right;
             transform: translate(50%, -50%) rotate(-35deg);
             background-color: rgba(0, 0, 0, 1);
+            box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
         }
         > span:last-of-type {
             top: 0;
@@ -377,6 +387,7 @@ import Navigation from './Navigation.astro';
             transform: translate(0%, -50%) rotate(35deg);
             transform-origin: left;
             background-color: rgba(0, 0, 0, 1);
+            box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
         }
     }
 
@@ -388,7 +399,7 @@ import Navigation from './Navigation.astro';
         > .searchBox {
             width: 100%;
             
-            /* background-color: rgba(255, 255, 255, 0.6); */
+            background-color: rgba(0, 0, 0, 0.8);
             padding: 0;
             /* position: relative; */
 
@@ -423,6 +434,9 @@ import Navigation from './Navigation.astro';
         width: 100%;
         border-radius: 24px;
 
+        background-color: rgba(0, 0, 0, 0.7);
+
+
         > #searchTextBox {
             position: absolute;
             top: 50%;
@@ -430,6 +444,7 @@ import Navigation from './Navigation.astro';
             transform: translate(12%, -50%);
             opacity: 1;
             font-size: 22px;
+            color: white;
             pointer-events: none;
             overflow: hidden;
 
@@ -460,7 +475,7 @@ import Navigation from './Navigation.astro';
             font-size: 22px;
             border: none;
             outline: none;
-            box-shadow: 0 0px 10px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0px 10px rgba(255, 255, 255, 0.2);
             /* background-color: rgba(255, 255, 255, 0.4); */
             background-color: transparent;
             /* background-color: red; */
@@ -522,8 +537,12 @@ import Navigation from './Navigation.astro';
             bottom: 0;
             width: 100vw;
             height: 80vh;
-            background-color: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(8px);
+            /* background-color: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(8px); */
+
+            background-color: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
 
             > #panelHandleContainer {
 
@@ -534,6 +553,7 @@ import Navigation from './Navigation.astro';
                 transform-origin: right;
                 transform: translate(50%, -50%) rotate(-35deg);
                 background-color: rgba(0, 0, 0, 1);
+                box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
             }
             > span:last-of-type {
                 top: 0;
@@ -542,6 +562,7 @@ import Navigation from './Navigation.astro';
                 transform: translate(0%, -50%) rotate(35deg);
                 transform-origin: left;
                 background-color: rgba(0, 0, 0, 1);
+                box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
             }
         }
 
@@ -552,14 +573,16 @@ import Navigation from './Navigation.astro';
 
             > .searchBox {
                 width: 100%;
+                background-color: transparent;
                 
 
                 /* box-shadow: 0 0px 30px rgba(0, 0, 0, 1); */
 
                 > #Search {
                     /* background-color: red; */
-                    box-shadow: 0 0px 30px rgba(0, 0, 0, 1);
+                    box-shadow: 0 0px 30px rgb(255, 255, 255);
                     width: 80%;
+                    background-color: transparent;
                 }
 
                 
@@ -577,7 +600,7 @@ import Navigation from './Navigation.astro';
                     opacity: 1;
                     pointer-events: all;
                     z-index: 1000;
-                    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.8);
+                    box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.8);
                     
 
                 > span:first-child {
