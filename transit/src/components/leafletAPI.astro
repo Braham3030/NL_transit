@@ -19,6 +19,11 @@ console.log('Leaflet API component loaded');
     import 'leaflet.markercluster/dist/MarkerCluster.css';
     import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
     let map;
+
+    // Stores the transit line
+    let activeSearch = null;
+    // Stores raw data from the api
+    let allLiveVehicles = [];
     // let mapElement;
     // let myRenderer;
 
@@ -58,44 +63,100 @@ console.log('Leaflet API component loaded');
 
             const dataLive = await responseLive.json();
 
+            // Store live vehicle data in the "let"
+            allLiveVehicles = Array.isArray(dataLive) ? dataLive : (dataLive && dataLive.vehicles) || [];
+
+            renderLiveLocations();
+
             console.log('Transit live locations data:', dataLive);
             console.log(`Fetching transit live locations from API: ${liveLocationApi}`);
 
-            liveClusters.clearLayers();
+            // liveClusters.clearLayers();
 
-            const liveArray = Array.isArray(dataLive) ? dataLive : (dataLive && dataLive.vehicles) || [];
+            // const liveArray = Array.isArray(dataLive) ? dataLive : (dataLive && dataLive.vehicles) || [];
 
-            const liveMarkersToAdd = [];
+            // const liveMarkersToAdd = [];
 
-            liveArray.forEach(location => {
+            // liveArray.forEach(location => {
 
-                // Parsefloat is used to ensure the lat and lon are used as numbers
+            //     // Parsefloat is used to ensure the lat and lon are used as numbers
+            //     const lat = parseFloat(location.latitude);
+            //     const lon = parseFloat(location.longitude);
+
+            //     const routeId = location.routeId;
+
+            //     if (!isNaN(lat) && !isNaN(lon)) {
+            //         const routeInfo = routesMap[routeId] || {
+            //             shortName: 'Unknown route',
+            //             longName: 'Unknown route',
+            //             routeId: routeId,
+            //             routeColor: '#000000',
+            //             routeTextColor: '#ffffff',
+            //             agencyId: 'Unknown agency'
+            //         }
+            //         const marker = L.circleMarker([lat, lon], {
+            //             // With the items below, the live location can be customized 
+            //             radius: 8,
+            //             fillColor: routeInfo.routeColor,
+            //             color: '#fff',
+            //             weight: 1,
+            //             opacity: 1,
+            //             fillOpacity: 0.9
+            //             // renderer: myRenderer
+            //         })
+
+            //         // html popup binding
+            //         marker.bindPopup(`
+            //         <div class="livePopupContainer" style="background-color: ${routeInfo.routeColor}; box-shadow: 0px 0px 20px ${routeInfo.routeColor} !important;">
+            //             <h3 style="color: ${routeInfo.routeTextColor}">Live location for line ${routeInfo.shortName}</h3>
+            //             <ul>
+            //                 <li style="color: ${routeInfo.routeTextColor}"><b>Provider:</b><br> ${routeInfo.agencyId}</li>
+            //                 <li style="color: ${routeInfo.routeTextColor}"><b>Route name:</b><br> ${routeInfo.longName}</li>
+                            
+            //             </ul>
+            //         </div>
+            //         `)
+
+
+
+
+            //         // liveMarkersToAdd.push(marker);
+            //         liveClusters.addLayer(marker);
+            //     }
+            // });
+
+            // liveClusters.addLayers(liveMarkersToAdd);
+
+        } catch (error) {
+            console.error('Error fetching transit live locations:', error);
+        }
+    } 
+
+    const renderLiveLocations = () => {
+        // clears the map first
+        liveClusters.clearLayers();
+
+        if (!activeSearch) return;
+        
+        const liveMarkersToAdd = [];
+
+        allLiveVehicles.forEach(location => {
+            const routeId = location.routeId;
+            const routeInfo = routesMap[routeId];
+
+            if (routeInfo && routeInfo.shortName.toString().toLowerCase() === activeSearch.toLowerCase()) {
                 const lat = parseFloat(location.latitude);
                 const lon = parseFloat(location.longitude);
 
-                const routeId = location.routeId;
-
                 if (!isNaN(lat) && !isNaN(lon)) {
-                    const routeInfo = routesMap[routeId] || {
-                        shortName: 'Unknown route',
-                        longName: 'Unknown route',
-                        routeId: routeId,
-                        routeColor: '#000000',
-                        routeTextColor: '#ffffff',
-                        agencyId: 'Unknown agency'
-                    }
                     const marker = L.circleMarker([lat, lon], {
-                        // With the items below, the live location can be customized 
                         radius: 8,
                         fillColor: routeInfo.routeColor,
                         color: '#fff',
                         weight: 1,
                         opacity: 1,
                         fillOpacity: 0.9
-                        // renderer: myRenderer
-                    })
-
-                    // html popup binding
+                    });
                     marker.bindPopup(`
                     <div class="livePopupContainer" style="background-color: ${routeInfo.routeColor}; box-shadow: 0px 0px 20px ${routeInfo.routeColor} !important;">
                         <h3 style="color: ${routeInfo.routeTextColor}">Live location for line ${routeInfo.shortName}</h3>
@@ -105,22 +166,13 @@ console.log('Leaflet API component loaded');
                             
                         </ul>
                     </div>
-                    `)
+                    `);
 
-
-
-
-                    // liveMarkersToAdd.push(marker);
                     liveClusters.addLayer(marker);
                 }
-            });
-
-            // liveClusters.addLayers(liveMarkersToAdd);
-
-        } catch (error) {
-            console.error('Error fetching transit live locations:', error);
-        }
-    } 
+            }
+        });
+  }
 
     async function stopsInView() {
         if (!map) return;
@@ -410,6 +462,15 @@ console.log('Leaflet API component loaded');
         //         })
         //     })
 
+
+        document.addEventListener('search-line', (e) => {
+            activeSearch = e.detail.shortName.toString();
+            console.log('Searching for line:', activeSearch);
+            // renderLiveLocations();
+            transitLiveLocations();
+        })
+
+
         setTimeout(() => {
             map.invalidateSize();
             // Get the functions and call them after map is loaded
@@ -420,7 +481,7 @@ console.log('Leaflet API component loaded');
 
         setTimeout(() => {
             map.invalidateSize();
-            transitLiveLocations();
+            // transitLiveLocations();
             // Delay the fetch to the live locations. To ensure map loading before fetching
             fetchRoutes();
         }, 3500);

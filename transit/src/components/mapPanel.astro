@@ -278,6 +278,35 @@ import Navigation from './Navigation.astro';
 
     // Search functionality for data
 
+    if (searchElement) {
+        searchElement.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+
+                const searchValue = searchElement.value.trim();
+
+                if (searchValue !== "") {
+                    console.log(`Searching for: ${searchValue}`);
+
+                    const searchResults = new CustomEvent("search-line", {
+                        detail: { shortName: searchValue }
+                    });
+
+                    document.dispatchEvent(searchResults);
+
+                    isOpen = false;
+                    panel.classList.remove("open");
+
+                    panel.style.height = "";
+                    panel.style.width = "";
+                    panel.style.opacity = "";
+
+                    searchElement.blur();
+                }
+            }
+        })
+    }
+
     
 
     // togglePanel();
