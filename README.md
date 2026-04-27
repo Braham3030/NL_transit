@@ -59,7 +59,7 @@ Idëeen voor dag 3:
 
 ## Dag 3
 
-vandaag heb ik gewerkt aan het ophalen van de api. ik ben begonnen met de statische data. hierbij heb ik allereerst de data opgehaald van alle haltes in Nederland. Echter kampte ik met een provleem dat de files die OVApi bevat allemaal "txt" bestanden zinn. dese zijn niet goed te gebruiken, omdat er json nodig is om de data om te setten naar bruikbare informatie. Dit probleem heb ik ook aan gemini AI voorgelegd en zo samen geprobeerd op te lossen. gemini bracht mij wel op het goede pad, maar faalde erin dit goed en stabiel op te vangen. ik heb veel foutmeldingen erdoor gesien en op moeten lossen. 
+vandaag heb ik gewerkt aan het ophalen van de api. ik ben begonnen met de statische data. hierbij heb ik allereerst de data opgehaald van alle haltes in Nederland. Echter kampte ik met een provleem dat de files die OVApi bevat allemaal "txt" bestanden zinn. dese zijn niet goed te gebruiken, omdat er json nodig is om de data om te setten naar bruikbare informatie. Dit probleem heb ik ook aan gemini AI voorgelegd en zo samen geprobeerd op te lossen. gemini bracht mij wel op het goede pad, maar faalde erin dit goed en stabiel op te vangen. ik heb veel foutmeldingen erdoor gezien en op moeten lossen. 
 
 Ik heb bijvoorbeeld geprobeerd om de "txt" file via de xode om te zetten naar een "json" bestand. dit werkte exhter niet goed voor mij.
 Hierna heb ik het geprobeerd door de "txt" data om te zetten met een converter. Dit heeft ook niet goed geholpen, omdat het de data als "txt" behield en alleen de naam veranderd naar "json". 
@@ -67,9 +67,15 @@ Om dit uiteindelijk wel recht te krijgen heb ik de "txt" file in excel gezet. De
 
 ## Dag 4
 
+Verder gewerkt aan het ophalen van de transit. En gewerkt aan het maken van een popup screen voor de verschillende transit. De popup geeft meer informatie weer over de gekozen transit.
+
+Ik wil de mapPanel gebruiken om te zoeken naar een bepaalde lijn, en ook om de tijd te kiezen die bij de lijn hoort. Ook zal de gekozen transit gevolgd blijven worden. 
+
+De puntjes op de kaart moeten ook beter zichtbaar zijn in 1 oogopslag. Dit wil ik doen door een bus of trein svg/png te gebruiken voor de styling. Hierdoor kan dit beter gezien worden.
+
+Ook de zoekfunctionaliteit wil ik uitbreiden door te kunnen zoeken naar transit of stops. Hiermee kan de gebruiker direct de locatie vinden van de transit.
+
 ## Dag 5
-
-
 
 Met behulp van AI een tijdelijke storage aangemaakt en laten verversen met nieuwe data, dit inverband met 'rate limit'. Het idee is om de "realtime" locaties op de kaart te blijvem behouden, zodat de gebruiker altijd het OV kan blijven zien. Het probleem dat ik eerder ondervond, was dat de locaties verdwijnen na een aantal keer herladen, of bij het draggen of zoomen op de kaart.
 
@@ -173,3 +179,6 @@ export async function GET() {
 
 ## AI usage
 [Gemini_static_api_error](https://gemini.google.com/share/1037ffcae5ab)
+
+## Leaflet styling
+[maptiler](https://www.npmjs.com/package/@maptiler/sdk)
