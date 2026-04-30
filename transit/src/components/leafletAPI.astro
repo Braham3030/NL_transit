@@ -35,7 +35,7 @@ console.log('Leaflet API component loaded');
 
     let initialCoords = { lat: 52.370216, lon: 4.895168 }; // Amsterdam coordinates
 
-    // All the routes will be stores within this map
+    // All the routes will be stored within this map
     let routesMap = {};
 
     console.log('Initializing Leaflet map...');
@@ -84,6 +84,7 @@ console.log('Leaflet API component loaded');
         if (!activeSearch) return;
         
         const liveMarkersToAdd = [];
+        const routeInfoForZoom = [];
 
         allLiveVehicles.forEach(location => {
             const routeId = location.routeId;
@@ -94,6 +95,7 @@ console.log('Leaflet API component loaded');
                 const lon = parseFloat(location.longitude);
 
                 if (!isNaN(lat) && !isNaN(lon)) {
+                    routeInfoForZoom.push([lat, lon]);
                     const marker = L.circleMarker([lat, lon], {
                         radius: 8,
                         fillColor: routeInfo.routeColor,
@@ -117,6 +119,18 @@ console.log('Leaflet API component loaded');
                 }
             }
         });
+
+        // The zoom will happen when the routeInfoForZoom has coordinates. This means bigger than 0
+        // https://leafletjs.com/reference.html#map-flytobounds
+        // Used flyToBounds because there are multiple lines to show
+        if (routeInfoForZoom.length > 0 ) {
+            map.flyToBounds(routeInfoForZoom, {
+                padding: [50, 50],
+                animate: true,
+                duration: 1.5,
+                maxZoom: 14
+            })
+        }
   }
 
     async function stopsInView() {
@@ -362,7 +376,7 @@ console.log('Leaflet API component loaded');
                     setView: false,
                     // Use of high accuracy for better location results. The geolocation fetch happens on a general level, with the high accuracy option, the location will be more accurate
                     // https://w3c.github.io/geolocation/#enablehighaccuracy-member
-                    enableHighAccuracy: true
+                    enableHighAccuracy: true,
                 })
             // map.setView([initialCoords.lat, initialCoords.lon], 10);
             // map.locate({setView: true, maxZoom: 16});
@@ -434,6 +448,7 @@ console.log('Leaflet API component loaded');
 
     document.addEventListener('DOMContentLoaded', setupMap);
     document.addEventListener('astro:page-load', setupMap);
+    
 </script>
 
 

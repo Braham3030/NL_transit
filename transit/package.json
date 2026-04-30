@@ -12,10 +12,10 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/node": "^10.0.4",
+    "@astrojs/node": "^10.0.6",
     "@types/node": "^25.5.2",
     "all": "^0.0.0",
-    "astro": "^6.1.2",
+    "astro": "^6.1.10",
     "chain": "^0.4.2",
     "csv-parse": "^6.2.1",
     "fs": "^0.0.1-security",

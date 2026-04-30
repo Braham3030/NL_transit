@@ -6,10 +6,10 @@ import Route from './Route.astro';
 
 <nav>
     <ul>
-        <li class="nav-item active">
+        <li class="nav-item timeBtn active">
             <Time />
         </li>
-        <li class="nav-item">
+        <li class="nav-item routeBtn">
             <Route />
         </li>
     </ul>
@@ -31,6 +31,12 @@ import Route from './Route.astro';
 
         ul.style.setProperty("--bg-left", `${left}px`);
         ul.style.setProperty("--bg-width", `${width}px`);
+
+        const isTime = activeItem.classList.contains("timeBtn");
+
+        // Based on active tab, the following html will be shown or hidden
+        document.querySelector(".tabTime").style.display = isTime ? "flex" : "none";
+        document.querySelector(".tabRoute").style.display = isTime ? "none" : "flex";
     }
 
     const startActive = document.querySelector(".nav-item.active");

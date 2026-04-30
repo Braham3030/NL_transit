@@ -20,8 +20,17 @@ import LiveTransitList from './LiveTransitList.astro';
             <span></span>
         </button>
     </div>
-    <LiveTransitList />
-    <Navigation />
+    <div class="containerRouteTime">
+        <div class="tabTime">
+            <LiveTransitList />
+        </div>
+        <div class="tabRoute">
+            <h3>Test</h3>
+        </div>
+    </div>
+    <div class="navigationContainer">
+        <Navigation />
+    </div>
 </div>
 
 <script>
@@ -30,12 +39,29 @@ import LiveTransitList from './LiveTransitList.astro';
     const handle = document.getElementById("panelHandleContainer");
     const searchBoxContainer = document.querySelector(".searchBoxContainer");
 
-    // handle?.addEventListener("click", () => {
-    //     if (!panel) return;
+    const timeTab = document.querySelector(".tabTime");
+    const routeTab = document.querySelector(".tabRoute");
+    const timeBtn = document.querySelector(".timeBtn");
+    const routeBtn = document.querySelector(".routeBtn");
 
-    //     panel?.classList.toggle("open");
-    // })
+    if (timeTab && routeTab) {
+        timeTab.style.display = "flex";
+        routeTab.style.display = "none";
+    }
+    
+    timeBtn?.addEventListener("click", () => {
+        if (timeTab && routeTab) {
+        timeTab.style.display = "flex";
+        routeTab.style.display = "none";
+        }
+    })
 
+    routeBtn?.addEventListener("click", () => {
+        if (timeTab && routeTab) {
+        timeTab.style.display = "none";
+        routeTab.style.display = "flex";
+        }
+    })
 
     let isOpen = false;
 
@@ -282,14 +308,18 @@ import LiveTransitList from './LiveTransitList.astro';
 
     if (searchElement) {
         searchElement.addEventListener("keydown", (e) => {
+            // Enter key will trigger the search
             if (e.key === "Enter") {
                 e.preventDefault();
 
+                // The search value is trimmed to remove extra spaces 
                 const searchValue = searchElement.value.trim();
 
                 if (searchValue !== "") {
                     console.log(`Searching for: ${searchValue}`);
 
+                    // Custom event is being used to communicate the search value with the other components.
+                    // "search-line" is the name of the event in the other component
                     const searchResults = new CustomEvent("search-line", {
                         detail: { shortName: searchValue }
                     });
@@ -327,7 +357,7 @@ import LiveTransitList from './LiveTransitList.astro';
         left: 50%;
         transform: translate(-50%, 150%) scale(0.5);
         width: 90vw;
-        height: 10vh;
+        height: 12vh;
         /* background-color: rgba(255, 255, 255, 0.2);
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(2px); */
@@ -344,7 +374,7 @@ import LiveTransitList from './LiveTransitList.astro';
 
         animation: slideInBottom 1s cubic-bezier(0.33, 0.72, 0, 1.18) 0.5s forwards;
 
-        transition: height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 1.4s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+        transition: height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
 
         > #panelHandleContainer {
             display: flex;
@@ -654,6 +684,20 @@ import LiveTransitList from './LiveTransitList.astro';
             animation: SlideOutText 0.8s ease-in-out forwards;
         }
 
+        .containerRouteTime {
+            flex: 1;
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .navigationContainer {
+            width: 100%;
+            padding-bottom: 5em;
+        }
+
+        .tabTime, .tabRoute {
+            display: none;
+        }
     
     
 
@@ -702,18 +746,40 @@ import LiveTransitList from './LiveTransitList.astro';
     @media (min-width: 1200px) {
         .panelBox {
             bottom: .5em;
-            left: 12%;
+            left: 14%;
             transform: translate(-50%, 150%) scale(0.5);
-            width: 20vw;
+            width: 24vw;
+
+            transition: left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
         }
 
         .panelBox.open {
-            left: 12%;
+            left: 14%;
             width: 24vw;
         }
 
         &:has(#Search:focus) .panelBox {
             width: 24vw;
+        }
+    }
+    
+    @media (min-width: 800px) and (max-width: 1199px) {
+        .panelBox {
+            bottom: 1em;
+            left: 18%;
+            transform: translate(-50%, 150%) scale(0.5);
+            width: 35vw;
+
+            transition: left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+        }
+
+        .panelBox.open {
+            left: 18%;
+            width: 30vw;
+        }
+
+        &:has(#Search:focus) .panelBox {
+            width: 30vw;
         }
     }
 </style>
