@@ -81,12 +81,14 @@ console.log('Leaflet API component loaded');
         // clears the map first
         liveClusters.clearLayers();
 
-        if (!activeSearch) return;
+        if (!activeSearch || !allLiveVehicles || !Array.isArray(allLiveVehicles)) return;
         
         const liveMarkersToAdd = [];
         const routeInfoForZoom = [];
 
         allLiveVehicles.forEach(location => {
+            if (!location) return;
+
             const routeId = location.routeId;
             const routeInfo = routesMap[routeId];
 
@@ -95,7 +97,18 @@ console.log('Leaflet API component loaded');
                 const lon = parseFloat(location.longitude);
 
                 if (!isNaN(lat) && !isNaN(lon)) {
-                    routeInfoForZoom.push([lat, lon]);
+                    // Stores the given data and pushes this to the routeInfoForZoom array.
+                    // .push usage:
+                    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
+                    routeInfoForZoom.push({
+                        lat: lat,
+                        lon: lon,
+                        shortName: routeInfo.shortName,
+                        longName: routeInfo.longName,
+                        routeColor: routeInfo.routeColor,
+                        routeTextColor: routeInfo.routeTextColor
+                    });
+
                     const marker = L.circleMarker([lat, lon], {
                         radius: 8,
                         fillColor: routeInfo.routeColor,
@@ -119,6 +132,27 @@ console.log('Leaflet API component loaded');
                 }
             }
         });
+
+        document.dispatchEvent(new CustomEvent('liveLocationUpdate', {
+            detail: {
+                transitInfo: routeInfoForZoom
+            }
+        }));
+
+        // If the routeInfoForZoom has the information (which makes the length bigger than 0), then it will zoom to the route
+        if (routeInfoForZoom.length > 0) {
+            // I mad a map to convert the routeInfoForZoom to an array of coordinates, because map.flyTo needs arrays
+            const routeInfoMap = routeInfoForZoom.map(transit => [transit.lat, transit.lon]);
+            
+            try {
+            map.flyToBounds(routeInfoMap, 14, {
+                animate: true,
+                duration: 1.5
+            })
+        } catch (e) {
+            console.error('Error flying to route bounds:', e);
+        }
+        }
 
         // The zoom will happen when the routeInfoForZoom has coordinates. This means bigger than 0
         // https://leafletjs.com/reference.html#map-flytobounds

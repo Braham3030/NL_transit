@@ -1,10 +1,11 @@
 ---
 ---
 
-<div>
-    <h3>Live transit times</h3>
-    <ul>
-        <li>Test time 1</li>
+<div class="liveTransitListContainer">
+    <h3 class="liveTransitListTitle">Live transit times</h3>
+    <ul class="liveTransitList">
+        <li>Loading data...</li>
+        <!-- <li>Test time 1</li>
         <li>Test time 2</li>
         <li>Test time 3</li>
         <li>Test time 4</li>
@@ -12,13 +13,42 @@
         <li>Test time 6</li>
         <li>Test time 7</li>
         <li>Test time 8</li>
-        <li>Test time 9</li>
+        <li>Test time 9</li> -->
     </ul>
 </div>
 
 <script>
+    // @ts-nocheck
     // Live transit times based on API data and user location
     const timeItems = document.querySelector("li")
+
+    document.addEventListener("liveLocationUpdate", (e) => {
+        const transit = e.detail.transitInfo;
+
+        document.querySelector(".liveTransitListTitle").innerHTML = `Live transit times for ${transit.shortName}`;
+
+        const list = document.querySelector(".liveTransitList");
+
+        // Empty the list before adding new items
+
+        list.innerHTML = "";
+
+        if (!transit ||transit.length === 0) {
+            list.innerHTML = "<li>No live transit times available for line ${transit.shortName}</li>";
+            return;
+        }
+
+        transit.forEach((transit, index) => {
+            
+            const li = document.createElement("li");
+
+            li.innerHTML = `
+            Bus ${index + 1}
+            ${transit.longName}`;
+            // list.appendChild gets the list item and puts it in the list
+            list.appendChild(li);
+        });
+    })
 
     
 
