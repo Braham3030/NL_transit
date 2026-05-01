@@ -24,11 +24,9 @@ console.log('Leaflet API component loaded');
     let activeSearch = null;
     // Stores raw data from the api
     let allLiveVehicles = [];
-    // let mapElement;
-    // let myRenderer;
+    
+    let userLocation = null;
 
-    // let markerLayers;
-    // let markerClusters;
     let stopsClusters;
     let liveClusters;
     let fetchTimeout;
@@ -37,6 +35,13 @@ console.log('Leaflet API component loaded');
 
     // All the routes will be stored within this map
     let routesMap = {};
+
+    // pollingRate for fetching data
+    const pollingRate = 8000;
+    let pollingTimer;
+    let zoomInOnRefresh = true;
+
+    const markerDetailsZoom = 12;
 
     console.log('Initializing Leaflet map...');
 
@@ -75,7 +80,18 @@ console.log('Leaflet API component loaded');
         } catch (error) {
             console.error('Error fetching transit live locations:', error);
         }
-    } 
+    }
+
+
+    async function livePolling() {
+        await transitLiveLocations();
+
+        pollingTimer = setTimeout(livePolling, pollingRate);
+    }
+
+    async function stopLivePolling() {
+        clearTimeout(pollingTimer);
+    }
 
     const renderLiveLocations = () => {
         // clears the map first
@@ -97,6 +113,14 @@ console.log('Leaflet API component loaded');
                 const lon = parseFloat(location.longitude);
 
                 if (!isNaN(lat) && !isNaN(lon)) {
+
+                    // Calculate distance to user if available. Otherwise set to infinity to ensure all distances gets coverage
+                    let distanceToUser = Infinity;
+
+                    if (userLocation) {
+                        distanceToUser = map.distance(userLocation, L.latLng(lat, lon));
+                    }
+
                     // Stores the given data and pushes this to the routeInfoForZoom array.
                     // .push usage:
                     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
@@ -106,7 +130,9 @@ console.log('Leaflet API component loaded');
                         shortName: routeInfo.shortName,
                         longName: routeInfo.longName,
                         routeColor: routeInfo.routeColor,
-                        routeTextColor: routeInfo.routeTextColor
+                        routeTextColor: routeInfo.routeTextColor,
+                        distance: distanceToUser,
+                        agencyId: routeInfo.agencyId
                     });
 
                     const marker = L.circleMarker([lat, lon], {
@@ -133,6 +159,9 @@ console.log('Leaflet API component loaded');
             }
         });
 
+        // sort on distance to user. closest first. a is smaller than b
+        routeInfoForZoom.sort((a, b) => a.distance - b.distance);
+
         document.dispatchEvent(new CustomEvent('liveLocationUpdate', {
             detail: {
                 transitInfo: routeInfoForZoom
@@ -140,7 +169,7 @@ console.log('Leaflet API component loaded');
         }));
 
         // If the routeInfoForZoom has the information (which makes the length bigger than 0), then it will zoom to the route
-        if (routeInfoForZoom.length > 0) {
+        if (routeInfoForZoom.length > 0 && zoomInOnRefresh) {
             // I mad a map to convert the routeInfoForZoom to an array of coordinates, because map.flyTo needs arrays
             const routeInfoMap = routeInfoForZoom.map(transit => [transit.lat, transit.lon]);
             
@@ -149,6 +178,8 @@ console.log('Leaflet API component loaded');
                 animate: true,
                 duration: 1.5
             })
+            // Prevents zooming when refreshing with new data coords
+            zoomInOnRefresh = false;
         } catch (e) {
             console.error('Error flying to route bounds:', e);
         }
@@ -157,14 +188,18 @@ console.log('Leaflet API component loaded');
         // The zoom will happen when the routeInfoForZoom has coordinates. This means bigger than 0
         // https://leafletjs.com/reference.html#map-flytobounds
         // Used flyToBounds because there are multiple lines to show
-        if (routeInfoForZoom.length > 0 ) {
-            map.flyToBounds(routeInfoForZoom, {
-                padding: [50, 50],
-                animate: true,
-                duration: 1.5,
-                maxZoom: 14
-            })
-        }
+
+        
+        // if (routeInfoForZoom.length > 0 && zoomInOnRefresh) {
+        //     map.flyToBounds(routeInfoForZoom, {
+        //         padding: [50, 50],
+        //         animate: true,
+        //         duration: 1.5,
+        //         maxZoom: 14
+        //     })
+
+        //     zoomInOnRefresh = false;
+        // }
   }
 
     async function stopsInView() {
@@ -373,6 +408,9 @@ console.log('Leaflet API component loaded');
 
         map.on('locationfound', function(e) {
             console.log('Location FOUND...');
+
+            // Here I store the user location the let
+            userLocation = e.latlng;
             // userLocationMarker = L.marker(e.latlng).addTo(map)
             // .bindPopup(`
             // You are here!`)
@@ -425,10 +463,26 @@ console.log('Leaflet API component loaded');
 
         liveClusters = L.layerGroup();
 
-        map.addLayer(stopsClusters);
+        // map.addLayer(stopsClusters);
         map.addLayer(liveClusters);
 
-        map.on('moveend', stopsInView);
+        map.on('moveend', () => {
+        
+
+        // If the currentZoom is bigger than the makerDetailZoom, then the stops will be shown. Else none will be shown.
+        const currentZoom = map.getZoom();
+
+        if (currentZoom >= markerDetailsZoom) {
+            if (!map.hasLayer(stopsClusters)) {
+                map.addLayer(stopsClusters);
+                stopsInView();
+            }
+        } else {
+            if (map.hasLayer(stopsClusters)) {
+                map.removeLayer(stopsClusters);
+            }
+        }
+        });
 
         // fetch('/api/Stops')
         //     .then(response => {
@@ -458,9 +512,14 @@ console.log('Leaflet API component loaded');
 
         document.addEventListener('search-line', (e) => {
             activeSearch = e.detail.searchName.toString();
+            zoomInOnRefresh = true;
             console.log('Searching for line:', activeSearch);
             // renderLiveLocations();
-            transitLiveLocations();
+            // transitLiveLocations();
+
+            stopLivePolling();
+            livePolling();
+            
         })
 
 
