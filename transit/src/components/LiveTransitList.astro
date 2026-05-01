@@ -21,12 +21,15 @@
     // @ts-nocheck
     // Live transit times based on API data and user location
 
+import { link } from "node:fs";
+import { listen } from "node:quic";
+
     document.addEventListener("liveLocationUpdate", (e) => {
         const transit = e.detail;
         const shortName = transit.shortName;
         const longName = transit.longName;
 
-        const transitInfo = transit.transitInfo;
+        const transitInfos = transit.transitInfo;
         const transitInfoTitle = transit.transitInfoTitle;
 
         //  const title = document.querySelector(".liveTransitListTitle");
@@ -45,12 +48,12 @@
 
         list.innerHTML = "";
 
-        if (!transitInfo ||transitInfo.length === 0) {
+        if (!transitInfos ||transitInfos.length === 0) {
             list.innerHTML = `<li>No live transit times available for line ${shortName}</li>`;
             return;
         }
 
-        transitInfo.forEach((transitInfo, index) => {
+        transitInfos.forEach((transitInfo) => {
 
             // title.innerHTML = `
             // Live transit times for Line: ${transitInfo.shortName} 
@@ -58,9 +61,38 @@
             
             const li = document.createElement("li");
 
+            
+
+            if (!transit.routeColor || transitInfo.routeColor.includes("undefined") || transitInfo.routeColor.includes("null") || transitInfo.routeColor.includes("#")) {
+                li.style.backgroundColor = "rgba(0, 0, 0, 0.4)";
+            }
+
+            if (!transit.routeTextColor || transitInfo.routeTextColor.includes("undefined") || transitInfo.routeTextColor.includes("null") || transitInfo.routeTextColor.includes("#")) {
+                li.style.color = "white";
+            }
+
+            li.style.backgroundColor = transitInfo.routeColor;
+            li.style.color = transitInfo.routeTextColor;
+
+            console.log(transitInfo.routeColor, transitInfo.routeTextColor);
+
             li.innerHTML = `
             Line: ${transitInfo.shortName}
             </br>${transitInfo.longName}`;
+
+            // Click even listener for the list items
+
+        // CustomEvent is a way to send custom events data, when an action happend.
+        // https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
+        li.addEventListener("click", () => {
+            document.dispatchEvent(new CustomEvent("line-check", {
+                detail: {
+                    lat: transitInfo.lat,
+                    lon: transitInfo.lon,
+                }
+            }));
+        });
+
             // list.appendChild gets the list item and puts it in the list
             list.appendChild(li);
         });
@@ -69,15 +101,13 @@
 
 
     document.addEventListener("search-line", (e) => {
-        const searchName = e.detail.searchName;
+        const searchName = e.detail.searchName || e.detail.shortName;
 
         const title = document.querySelector(".liveTransitListTitle");
 
         title.innerHTML = `Live transit times for Line: <b>${searchName}</b>`;
         
     })
-
-    
 
 
     
@@ -127,10 +157,10 @@
                 height: fit-content;
                 width: fit-content;
                 padding: 1.5em 3em;
-
-                color: white;
+                cursor: pointer;
+                /* color: white;
                 background-color: rgba(255, 255, 255, 0.26);
-                box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3);
+                box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3); */
                 backdrop-filter: blur(2px);
             }
         }

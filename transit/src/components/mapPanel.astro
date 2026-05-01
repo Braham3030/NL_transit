@@ -354,6 +354,21 @@ import LiveTransitList from './LiveTransitList.astro';
         })
     }
 
+
+    document.addEventListener("line-check", (e) => {
+        const transitLat = e.detail.lat;
+        const transitLon = e.detail.lon;
+
+        if (transitLat && transitLon) {
+            isOpen = false;
+            panel.classList.remove("open");
+
+            panel.style.height = "";
+            panel.style.width = "";
+            panel.style.opacity = "";
+            
+        }
+    })
     
 
     // togglePanel();

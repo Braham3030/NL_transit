@@ -482,6 +482,20 @@ console.log('Leaflet API component loaded');
 
     document.addEventListener('DOMContentLoaded', setupMap);
     document.addEventListener('astro:page-load', setupMap);
+
+
+
+    document.addEventListener("line-check", (e) => {
+        const transitLat = e.detail.lat;
+        const transitLon = e.detail.lon;
+
+        if (transitLat && transitLon) {
+            map.flyTo([transitLat, transitLon], 16, {
+                animate: true,
+                duration: 1.5
+            })
+        }
+    })
     
 </script>
 
