@@ -457,7 +457,7 @@ console.log('Leaflet API component loaded');
 
 
         document.addEventListener('search-line', (e) => {
-            activeSearch = e.detail.shortName.toString();
+            activeSearch = e.detail.searchName.toString();
             console.log('Searching for line:', activeSearch);
             // renderLiveLocations();
             transitLiveLocations();

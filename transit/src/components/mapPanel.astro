@@ -45,21 +45,36 @@ import LiveTransitList from './LiveTransitList.astro';
     const routeBtn = document.querySelector(".routeBtn");
 
     if (timeTab && routeTab) {
-        timeTab.style.display = "flex";
-        routeTab.style.display = "none";
+        timeTab.style.opacity = "1";
+        timeTab.style.visibility = "visible";
+        timeTab.style.top = "0em";
+
+        routeTab.style.opacity = "0";
+        routeTab.style.visibility = "hidden";
+        routeTab.style.top = "20em";
     }
     
     timeBtn?.addEventListener("click", () => {
         if (timeTab && routeTab) {
-        timeTab.style.display = "flex";
-        routeTab.style.display = "none";
+        timeTab.style.opacity = "1";
+        timeTab.style.visibility = "visible";
+        timeTab.style.top = "0em";
+
+        routeTab.style.opacity = "0";
+        routeTab.style.visibility = "hidden";
+        routeTab.style.top = "20em";
         }
     })
 
     routeBtn?.addEventListener("click", () => {
         if (timeTab && routeTab) {
-        timeTab.style.display = "none";
-        routeTab.style.display = "flex";
+        timeTab.style.opacity = "0";
+        timeTab.style.visibility = "hidden";
+        timeTab.style.top = "20em";
+        
+        routeTab.style.opacity = "1";
+        routeTab.style.visibility = "visible";
+        routeTab.style.top = "0em";
         }
     })
 
@@ -321,7 +336,7 @@ import LiveTransitList from './LiveTransitList.astro';
                     // Custom event is being used to communicate the search value with the other components.
                     // "search-line" is the name of the event in the other component
                     const searchResults = new CustomEvent("search-line", {
-                        detail: { shortName: searchValue }
+                        detail: { searchName: searchValue }
                     });
 
                     document.dispatchEvent(searchResults);
@@ -455,7 +470,7 @@ import LiveTransitList from './LiveTransitList.astro';
         > .searchBoxContainer {
             width: 90%;
             margin-top: 4em;
-            margin-bottom: 2em;
+            margin-bottom: 0em;
 
         > .searchBox {
             width: 100%;
@@ -696,7 +711,14 @@ import LiveTransitList from './LiveTransitList.astro';
         }
 
         .tabTime, .tabRoute {
-            display: none;
+            /* display: none; */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+
+            transition: opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), visibility 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
         }
     
     

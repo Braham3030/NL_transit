@@ -35,8 +35,14 @@ import Route from './Route.astro';
         const isTime = activeItem.classList.contains("timeBtn");
 
         // Based on active tab, the following html will be shown or hidden
-        document.querySelector(".tabTime").style.display = isTime ? "flex" : "none";
-        document.querySelector(".tabRoute").style.display = isTime ? "none" : "flex";
+        document.querySelector(".tabTime").style.opacity = isTime ? "1" : "0";
+        document.querySelector(".tabTime").style.visibility = isTime ? "visible" : "hidden";
+        document.querySelector(".tabTime").style.Top = isTime ? "0" : "20em";
+
+        
+        document.querySelector(".tabRoute").style.opacity = isTime ? "0" : "1";
+        document.querySelector(".tabRoute").style.visibility = isTime ? "hidden" : "visible";
+        document.querySelector(".tabRoute").style.Top = isTime ? "20em" : "0";
     }
 
     const startActive = document.querySelector(".nav-item.active");
