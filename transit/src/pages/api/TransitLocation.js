@@ -12,6 +12,7 @@ const cacheDuration = 15000
 // Gtfs-realtime-bindings used to decode the fetched data and to make the structure
 // https://www.npmjs.com/package/gtfs-realtime-bindings
 
+
 export async function GET() {
     try {
         const currentTime = Date.now();

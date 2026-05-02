@@ -66,13 +66,12 @@
             const li = document.createElement("li");
 
             
-
-            if (!transit.routeColor || transitInfo.routeColor.includes("undefined") || transitInfo.routeColor.includes("null") || transitInfo.routeColor.includes("#")) {
-                li.style.backgroundColor = "rgba(0, 0, 0, 0.4)";
+            if (!transit.routeColor || transitInfo.routeColor.includes("undefined") || transitInfo.routeColor.includes("null") || transitInfo.routeColor === "#") {
+                transitInfo.routeColor = "rgba(0, 0, 0, 0.4)";
             }
 
-            if (!transit.routeTextColor || transitInfo.routeTextColor.includes("undefined") || transitInfo.routeTextColor.includes("null") || transitInfo.routeTextColor.includes("#")) {
-                li.style.color = "white";
+            if (!transit.routeTextColor || transitInfo.routeTextColor.includes("undefined") || transitInfo.routeTextColor.includes("null") || transitInfo.routeTextColor === "#") {
+                transitInfo.routeTextColor = "rgba(255, 255, 255, 0.9)";
             }
 
             li.style.backgroundColor = transitInfo.routeColor;
@@ -113,7 +112,9 @@
 
         const title = document.querySelector(".liveTransitListTitle");
 
-        title.innerHTML = `Live transit times for Line: <b>${searchName}</b>`;
+        if (searchName && title) {
+            title.innerHTML = `Live transit times for Line: <b>${searchName}</b>`;
+        }
         
     })
 

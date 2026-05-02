@@ -26,6 +26,7 @@ console.log('Leaflet API component loaded');
     let allLiveVehicles = [];
     
     let userLocation = null;
+    let userLocationMarker = null;
 
     let stopsClusters;
     let liveClusters;
@@ -37,7 +38,7 @@ console.log('Leaflet API component loaded');
     let routesMap = {};
 
     // pollingRate for fetching data
-    const pollingRate = 8000;
+    const pollingRate = 10000;
     let pollingTimer;
     let zoomInOnRefresh = true;
 
@@ -51,6 +52,12 @@ console.log('Leaflet API component loaded');
             
         try {
             const responseLive = await fetch(liveLocationApi);
+
+            if (responseLive.status === 429) {
+                stopLivePolling();
+                console.error('Rate limit exceeded for transit live locations API. Stopping live updates.');
+            }
+            return;
 
             // if (responseLive.status === 429) {
             //     console.error('Rate limit exceeded for transit live locations API');
@@ -135,13 +142,20 @@ console.log('Leaflet API component loaded');
                         agencyId: routeInfo.agencyId
                     });
 
-                    const marker = L.circleMarker([lat, lon], {
-                        radius: 8,
-                        fillColor: routeInfo.routeColor,
-                        color: '#fff',
-                        weight: 1,
-                        opacity: 1,
-                        fillOpacity: 0.9
+                    const transitIcon = L.icon({
+                        iconUrl: '/bus.png',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                    })
+
+                    const marker = L.Marker([lat, lon], {
+                        // radius: 8,
+                        // fillColor: routeInfo.routeColor,
+                        // color: '#fff',
+                        // weight: 1,
+                        // opacity: 1,
+                        // fillOpacity: 0.9,
+                        icon: transitIcon
                     });
                     marker.bindPopup(`
                     <div class="livePopupContainer" style="background-color: ${routeInfo.routeColor}; box-shadow: 0px 0px 20px ${routeInfo.routeColor} !important;">
@@ -226,7 +240,13 @@ console.log('Leaflet API component loaded');
 
         // With this apiUrl, the backend will filter the stops based on the view on the map
     // const apiUrl = `/api/Stops?minLat=${minLat}&maxLat=${maxLat}&minLon=${minLon}&maxLon=${maxLon}`;
-    const apiUrl = `/api/Stops`;
+    let apiUrl = `/api/Stops`;
+
+    // Whenever activeSeach has a value, the apiUrl will be changed to fetch the stops for the lines
+    // if (activeSearch) {
+    //     apiUrl = `/api/Stops?line=${activeSearch}`;
+    // }
+
     const response = await fetch(apiUrl)
     const data = await response.json();
     // console.log("StopsData", data);
@@ -271,15 +291,21 @@ console.log('Leaflet API component loaded');
                 opacity: 1,
                 fillOpacity: 0.8
             })
+            const shortName = stop.shortName
             // map.addLayer(markers);
+            // data-line usage
+            // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/data-*
             marker.bindPopup(`
             <div class="livePopupContainer" style="background-color: rgba(255, 255, 255, 0.8); box-shadow: 0px 0px 20px white !important;">
                         <h3 style="color: black">Stop: ${rawName}</h3>
                         <ul>
                             <li style="color: black"><b>bla</b><br> ${rawLon}</li>
                             <li style="color: black"><b>bla</b><br> ${rawLat}</li>
-                            
                         </ul>
+
+                        <button class="popupLine" data-line="${shortName}">
+                            Line: ${shortName}
+                        </button>
                     </div>
             `);
             markersToAdd.push(marker);
@@ -407,7 +433,7 @@ console.log('Leaflet API component loaded');
         let userCircle;
 
         map.on('locationfound', function(e) {
-            console.log('Location FOUND...');
+            console.log('Location FOUND... Accuracy:', Math.round(e.accuracy), 'meters');
 
             // Here I store the user location the let
             userLocation = e.latlng;
@@ -415,20 +441,52 @@ console.log('Leaflet API component loaded');
             // .bindPopup(`
             // You are here!`)
 
-            userCircle = L.circle(e.latlng, {
-                radius: 15,
-                color: '#00ff00',
-                weight: 5,
-                fillColor: 'rgba(0, 255, 0, 0.2)',
-                fillOpacity: 1,
-                className: 'userLocation'
-            }).addTo(map);
+            // If accuracy is above 100 meters, the signal will be considered weak. Else it will be stron
+            const weakSignal = e.accuracy > 100;
+            // Ternary operator to set the signal class based on the accuracy of the location
+            const signalClass = weakSignal ? 'weak' : 'strong';
 
+            // L.divIcon is used to create a custom div.
+            const userIcon = L.divIcon({
+                className: 'userLocation',
+                html: `
+                <div class="userLocation ${signalClass}">
+                    <div class="userPulse"></div>
+                    <div class="userCircle"></div>
+                </div>
+                `,
+                iconSize: [100, 100],
+                // iconAnchor sets the positin of the icon within its container. Now its centered
+                iconAnchor: [50, 50]
+            })
+
+            // Whenever the location is found, it checks if the userLocationMarker already exists. if it does, it will update positioning
+            if (userLocationMarker) {
+                // Latlng is a leaflet method to set the new position of the marker
+                userLocationMarker.setLatLng(e.latlng);
+
+                userLocationMarker.setIcon(userIcon);
+            } else {
+                // Else it will create the marker for the first time
+                userLocationMarker = L.marker(e.latlng, { icon: userIcon }).addTo(map);
+
+                // Only fly to user at refresh
             map.flyTo(e.latlng, 16, {
                 animate: true,
                 // Animation duration in seconds
                 duration: 2
             });
+            }
+            
+            const userLocationElement = document.querySelector('.userLocation');
+            userLocationElement.addEventListener("click", () => {
+                map.flyTo(userLocation, 16, {
+                    animate: true,
+                    duration: 2
+                })
+            })
+
+           
         });
 
         map.on('locationerror', function(e) {
@@ -449,6 +507,8 @@ console.log('Leaflet API component loaded');
                     // Use of high accuracy for better location results. The geolocation fetch happens on a general level, with the high accuracy option, the location will be more accurate
                     // https://w3c.github.io/geolocation/#enablehighaccuracy-member
                     enableHighAccuracy: true,
+                    // watch keeps updating the location in real time
+                    watch: true
                 })
             // map.setView([initialCoords.lat, initialCoords.lon], 10);
             // map.locate({setView: true, maxZoom: 16});
@@ -511,7 +571,11 @@ console.log('Leaflet API component loaded');
 
 
         document.addEventListener('search-line', (e) => {
-            activeSearch = e.detail.searchName.toString();
+            const searchValue = e.detail.searchName || e.detail.shortName;
+
+            if (!searchValue) return;
+
+            activeSearch = searchValue.toString();
             zoomInOnRefresh = true;
             console.log('Searching for line:', activeSearch);
             // renderLiveLocations();
@@ -555,6 +619,26 @@ console.log('Leaflet API component loaded');
             })
         }
     })
+    
+    // Lines for transit according to stops
+
+    // document.addEventListener("click", (e) => {
+    //     if (e.target && e.target.classList.contains("popupLine")) {
+    //         const lineToSearch = e.target.getAttribute("data-line");
+
+    //         console.log('Line clicked:', lineToSearch);
+
+    //         // Searches lines in "search-line" custom event, because this already obtains the data
+    //         document.dispatchEvent(new CustomEvent("search-line", {
+    //             detail: {
+    //                 searchName: lineToSearch
+    //             }
+    //         }));
+
+    //         // Closes the popup after line has been clicked
+    //         if (map) map.closePopup();
+    //     };
+    // });
     
 </script>
 
@@ -732,6 +816,104 @@ console.log('Leaflet API component loaded');
             margin-left: 22vw !important;
         }
     }
+
+    .userLocation.strong {
+        width: 100px;
+        height: 100px;
+        background: transparent;
+        border: none;
+        position: relative;
+
+        /* > .userHeading {
+            width: 10px;
+            height: 10px;
+            border-bottom: 15px solid rgba(0, 242, 255, 0.8);
+        } */
+
+        > .userPulse {
+            width: 20%;
+            height: 20%;
+            border-radius: 50%;
+            background-color: rgba(48, 197, 51, 0.8);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulse 2s infinite;
+        }
+
+        > .userCircle {
+            width: 20%;
+            height: 20%;
+            border-radius: 50%;
+            background-color: rgb(49, 197, 51);
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+}
+
+.userLocation.weak {
+        width: 100px;
+        height: 100px;
+        background: transparent;
+        position: relative;
+
+        /* > .userHeading {
+            width: 10px;
+            height: 10px;
+            border-bottom: 15px solid rgba(0, 242, 255, 0.8);
+        } */
+
+        > .userPulse {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: rgba(48, 197, 51, 0.8);
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: pulseIn 2s infinite;
+        }
+
+        > .userCircle {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background-color: rgba(49, 197, 51, 0.1);
+            border: 4px solid rgba(48, 197, 51, 0.8);
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+}
+
+@keyframes pulse {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.8;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(5.5);
+        opacity: 0;
+    }
+}
+
+@keyframes pulseIn {
+    0% {
+        transform: scale(1);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(0.3);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
 </style>
 
 <style>
@@ -742,6 +924,22 @@ console.log('Leaflet API component loaded');
     align-items: center;
     justify-content: center;
 } */
+
+<div class="userLocation">
+                    <div class="userHeading"></div>
+                    <div class="userPulse"></div>
+                    <div class="userCircle"></div>
+                </div>
+
+
+
+
+
+
+
+
+
+
 
 .loading {
   width: 40px;
