@@ -64,6 +64,12 @@ body {
 } */
 
 
+body:has(.panelBox.open) .Legend {
+        bottom: 2em !important;
+        opacity: 0 !important;
+    }
+
+
 @keyframes slideDown {
     from {
         transform: translateY(-100%);

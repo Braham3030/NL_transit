@@ -66,11 +66,11 @@
             const li = document.createElement("li");
 
             
-            if (!transit.routeColor || transitInfo.routeColor.includes("undefined") || transitInfo.routeColor.includes("null") || transitInfo.routeColor === "#") {
+            if (!transitInfo.routeColor || transitInfo.routeColor.includes("undefined") || transitInfo.routeColor.includes("null") || transitInfo.routeColor === "#") {
                 transitInfo.routeColor = "rgba(0, 0, 0, 0.4)";
             }
 
-            if (!transit.routeTextColor || transitInfo.routeTextColor.includes("undefined") || transitInfo.routeTextColor.includes("null") || transitInfo.routeTextColor === "#") {
+            if (!transitInfo.routeTextColor || transitInfo.routeTextColor.includes("undefined") || transitInfo.routeTextColor.includes("null") || transitInfo.routeTextColor === "#") {
                 transitInfo.routeTextColor = "rgba(255, 255, 255, 0.9)";
             }
 

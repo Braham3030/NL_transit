@@ -54,7 +54,7 @@ import LiveTransitList from './LiveTransitList.astro';
         routeTab.style.top = "20em";
     }
     
-    timeBtn?.addEventListener("click", () => {
+    timeBtn.addEventListener("click", () => {
         if (timeTab && routeTab) {
         timeTab.style.opacity = "1";
         timeTab.style.visibility = "visible";
@@ -66,7 +66,7 @@ import LiveTransitList from './LiveTransitList.astro';
         }
     })
 
-    routeBtn?.addEventListener("click", () => {
+    routeBtn.addEventListener("click", () => {
         if (timeTab && routeTab) {
         timeTab.style.opacity = "0";
         timeTab.style.visibility = "hidden";
@@ -542,11 +542,12 @@ import LiveTransitList from './LiveTransitList.astro';
             text-align: left;
             width: 80%;
 
-            transition: opacity 0.3s ease-in-out, transform 0.4s ease-in-out, font-size 0.6s ease-in-out;
+            transition: opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), transform 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), font-size 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18);
 
         > #searchText {
             display: inline-block;
             font-weight: 700;
+            text-shadow: 0 0px 4px rgba(255, 255, 255, 0.6);
             /* position: absolute;
             top: 50%;
             left: 0%;
@@ -670,6 +671,13 @@ import LiveTransitList from './LiveTransitList.astro';
             > .searchBox {
                 width: 100%;
                 background-color: transparent;
+
+                > #searchTextBox {
+                    transform: translate(5%, -50%);
+                    opacity: 1;
+
+                    transition: opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), transform 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), font-size 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18);
+                }
                 
 
                 /* box-shadow: 0 0px 30px rgba(0, 0, 0, 1); */
@@ -707,6 +715,12 @@ import LiveTransitList from './LiveTransitList.astro';
                     transform: translate(-50%, -50%) rotate(-45deg);
                 }
             }
+        }
+
+        &:has(#Search:not(:placeholder-shown)) #searchTextBox {
+            opacity: 0;
+            transform: translate(20%, -50%);
+            left: 20%;
         }
         }
         
