@@ -48,6 +48,7 @@ export async function GET() {
         const message = GtfsRealtime.transit_realtime.FeedMessage.decode(new Uint8Array(buffer));
         
         // Filter and map data to get relevant information in array
+        // Asked Gemini for the data points to use.
         const vehicles = message.entity.filter(entity => entity.vehicle)
         .map(entity => ({
             id: entity.id,

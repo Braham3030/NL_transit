@@ -20,6 +20,7 @@ export async function GET({ request }) {
 
         let filteredStops = allStops;
 
+        // The locations for the stops are being filtered here.
         if (!isNaN(minLat) && !isNaN(maxLat) && !isNaN(minLon) && !isNaN(maxLon)) {
             filteredStops = allStops.filter(stop => {
                 return stop.stop_lat >= minLat && stop.stop_lat <= maxLat && stop.stop_lon >= minLon && stop.stop_lon <= maxLon;

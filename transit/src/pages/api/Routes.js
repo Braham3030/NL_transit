@@ -38,21 +38,6 @@ export async function GET({ request }) {
                 'cache-control': 'public, max-age=86400'
             }
         });
-
-        // if (!response.ok) {
-        //     throw new Error(`HTTP error! status: ${response.status}`);
-        // }
-
-        // const stopData = await response.json();
-
-        // stopData.forEach (stopData => {
-        //     if (stopData.lat && stopData.lon) {
-        //         L.marker([stopData.lat, stopData.lon]).addTo(map)
-        //             .bindPopup('<b>${stopData.name}</b>')
-        //             .addTo(map);
-        //     }
-        // });
-        // console.log(stopData.length);
         
     } catch (error) {
         console.error('Error fetching or processing stops data:', error);

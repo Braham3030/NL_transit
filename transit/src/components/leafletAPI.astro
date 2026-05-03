@@ -11,7 +11,8 @@ console.log('Leaflet API component loaded');
 
 <script>
     // @ts-nocheck
-    import L from 'leaflet';
+    import { fromRoutingStrategy } from 'astro/app/common';
+import L from 'leaflet';
 
     // MarkerCluster plugin for Leaflet
     // https://leafletjs.com/2012/08/20/guest-post-markerclusterer-0-1-released.html
@@ -117,6 +118,8 @@ console.log('Leaflet API component loaded');
             const routeInfo = routesMap[routeId];
 
             if (routeInfo && routeInfo.shortName.toString().toLowerCase() === activeSearch.toLowerCase()) {
+                // If lat and lon are strings, parseFloat will convert them to numbers
+                // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
                 const lat = parseFloat(location.latitude);
                 const lon = parseFloat(location.longitude);
 
@@ -129,6 +132,8 @@ console.log('Leaflet API component loaded');
                         distanceToUser = map.distance(userLocation, L.latLng(lat, lon));
                     }
 
+                    const formatedLongName = formatRoute(routeInfo.longName, routeInfo.route_type);
+
                     // Stores the given data and pushes this to the routeInfoForZoom array.
                     // .push usage:
                     // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
@@ -136,7 +141,7 @@ console.log('Leaflet API component loaded');
                         lat: lat,
                         lon: lon,
                         shortName: routeInfo.shortName,
-                        longName: routeInfo.longName,
+                        longName: formatedLongName,
                         routeColor: routeInfo.routeColor,
                         routeTextColor: routeInfo.routeTextColor,
                         distance: distanceToUser,
@@ -154,7 +159,6 @@ console.log('Leaflet API component loaded');
  </svg>
                         </div>
                         `,
-                        // iconUrl: '/bus.png',
                         iconSize: [30, 30],
                         iconAnchor: [15, 15]
                     })
@@ -173,16 +177,36 @@ console.log('Leaflet API component loaded');
                         <h3 style="color: ${routeInfo.routeTextColor}">Live location for line ${routeInfo.shortName}</h3>
                         <ul>
                             <li style="color: ${routeInfo.routeTextColor}"><b>Provider:</b><br> ${routeInfo.agencyId}</li>
-                            <li style="color: ${routeInfo.routeTextColor}"><b>Route name:</b><br> ${routeInfo.longName}</li>
+                            <li style="color: ${routeInfo.routeTextColor}"><b>Route name:</b><br> ${formatedLongName}</li>
                             
                         </ul>
                     </div>
                     `);
 
+                    // Click event for the marker to fly to the location
+                    marker.on('click', () => {
+                        map.flyTo([lat, lon], 16, {
+                            animate: true,
+                            duration: 2
+                        })
+                    });
+
                     liveClusters.addLayer(marker);
                 }
+
+        //         const transitLocations = document.querySelectorAll('.transitIconBox');
+        // transitLocations.forEach((location) => {
+        //     location.addEventListener("click", () => {
+        //         map.flyTo([lat, lon], 16, {
+        //             animate: true,
+        //             duration: 2
+        //         })
+        //     })
+        // })
             }
         });
+
+        
 
         // sort on distance to user. closest first. a is smaller than b
         routeInfoForZoom.sort((a, b) => a.distance - b.distance);
@@ -226,6 +250,24 @@ console.log('Leaflet API component loaded');
         //     zoomInOnRefresh = false;
         // }
   }
+
+//   Route heading 
+
+    function formatRoute(longName, directionId) {
+        if (!longName) return "Unknown";
+
+        if (Number(directionId) === 0) {
+            return longName;
+        }
+
+        if (Number(directionId) === 1) {
+            if (longName.includes("-")) {
+                return longName.split("-").reverse().join("-");
+            }
+        }
+        // Fallback if there is no "-".
+        return longName;
+    }
 
     async function stopsInView() {
         if (!map) return;
@@ -694,13 +736,15 @@ console.log('Leaflet API component loaded');
     .leaflet-popup-content-wrapper {
         background-color: transparent !important;
         box-shadow: none !important;
-        width: fit-content !important;
-        height: auto !important;
+        /* width: fit-content !important;
+        height: auto !important; */
         padding: 0 !important;
         margin: 0 !important;
         border-radius: 18px !important;
+        /* width: 0;
+        height: 0; */
 
-        animation: slideOutPopup 0.5s ease-in-out forwards;
+        animation: slideOutPopup 0.5s cubic-bezier(0.33, 0.72, 0, 1.18) forwards;
     }
 
     .leaflet-popup-content-wrapper .leaflet-popup-content {
@@ -713,15 +757,19 @@ console.log('Leaflet API component loaded');
     .leaflet-popup-close-button {
         width: 30px !important;
         height: 30px !important;
-        transform: translate(0px, 15px);
+        transform: translate(-30px, 25px) !important;
         opacity: 0;
         z-index: -1;
+
+        border: 2px solid rgb(255, 255, 255) !important;
+        border-radius: 50% !important;
+        box-shadow: 0 0px 20px rgba(255, 255, 255, 0.8) !important;
         
-        animation: slideOutBanner 0.5s ease-in-out forwards 1s;
+        animation: slideOutBanner 0.5s cubic-bezier(0.33, 0.72, 0, 1.18) forwards 0.8s;
 
         > span {
             font-size: 24px !important;
-            color: black !important;
+            color: white !important;
             font-weight: 800 !important;
             width: 100% !important;
             height: 100% !important;
@@ -733,6 +781,7 @@ console.log('Leaflet API component loaded');
         padding: 1em !important;
         border-radius: 18px !important;
         /* box-shadow: 4px 8px 10px rgba(0, 0, 0, 0.9) !important; */
+
         > h3 {
             font-size: 24px !important;
             margin: 0 auto !important;
@@ -760,11 +809,11 @@ console.log('Leaflet API component loaded');
     @keyframes slideOutZoom {
         0% {
             opacity: 0;
-            transform: translateX(100px) scale(0);
+            transform: translateY(100px) scale(0);
         }
         100% {
             opacity: 1;
-            transform: translateX(0) scale(1);
+            transform: translateY(0) scale(1);
         }
     }
 
@@ -772,10 +821,14 @@ console.log('Leaflet API component loaded');
 
     @keyframes slideOutPopup {
         0% {
+            width: 0 !important;
+            height: 0 !important;
             opacity: 0;
             transform: translateY(20px) scaleX(0);
         }
         100% {
+            width: fit-content !important;
+            height: auto !important;
             opacity: 1;
             transform: translateY(0) scaleX(1);
         }
@@ -783,13 +836,17 @@ console.log('Leaflet API component loaded');
 
     @keyframes slideOutBanner {
         0% {
+            width: 30px !important;
+            height: 20px !important;
             opacity: 0;
-            transform: translate(-25px, 50px);
+            transform: translate(-100px, 25px) !important;
         }
         100% {
+            width: 30px !important;
+            height: 30px !important;
             z-index: 9999;
             opacity: 1;
-            transform: translate(0px, 15px);
+            transform: translate(-30px, 25px) !important;
         }
     }
 
@@ -927,12 +984,12 @@ console.log('Leaflet API component loaded');
     align-items: center;
     justify-content: center;
 } */
-
+/* 
 <div class="userLocation">
                     <div class="userHeading"></div>
                     <div class="userPulse"></div>
                     <div class="userCircle"></div>
-                </div>
+                </div> */
 
 
 
