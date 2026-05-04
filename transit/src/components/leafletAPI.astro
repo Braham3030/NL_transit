@@ -557,7 +557,10 @@ import L from 'leaflet';
 
                 setTimeout(() => {
                     userLocationBtn.classList.add('clicked');
-                }, 1000);
+                }, 500);
+                setTimeout(() => {
+                    userLocationBtn.classList.remove('clicked');
+                }, 8000);
             })
 
            

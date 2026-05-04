@@ -20,49 +20,79 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 6em;
+        width: 4em;
         height: 4em;
         border-radius: 50%;
         padding: 0.4em;
-        opacity: 0;
+        opacity: 1;
 
         position: absolute;
         bottom: 14em;
         right: 1.3em;
         z-index: 1000;
-        transform: translate(8em, 0) rotate(360deg);
+        transform: translate(0, 0) rotate(36deg);
 
         color: white;
         background-color: rgba(0, 0, 0, 0.7);
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
         backdrop-filter: blur(8px);
 
-        animation: LocationSlideIn 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) 1s forwards;
-        transition: transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), right 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+        animation: LocationSlideIn 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) 1s backwards;
+        transition: transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), right 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 1.4s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+        > div {
+        > svg {
+            transform: scale(1);
+            animation: svgScaleIn 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) 1.4s backwards;
+        }
+    }
     }
 
     .userLocationBtn.clicked {
 
         --fill-color-svg: rgba(0, 0, 0, 0.8);
         transform: translate(0, 0) rotate(0deg);
+        opacity: 1;
+        width: 4em;
+        height: 4em
 
         background-color: rgba(0, 0, 0, 0.8);
         box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(10px);
+
+        > div {
+    }
     }
 
     @keyframes LocationSlideIn {
-        from {
+        0% {
             width: 6em;
             height: 4em;
             transform: translate(8em, 0) rotate(360deg);
             opacity: 0;
+            border-radius: 25%;
         }
-        to {
+        50% {
             width: 4em;
             height: 4em;
             transform: translate(0, 0) rotate(36deg);
             opacity: 1;
         }
+        100% {
+            width: 4em;
+            height: 4em;
+            transform: translate(0, 0) rotate(36deg);
+            opacity: 1;
+            border-radius: 50%;
+        }
     }
+
+    @keyframes svgScaleIn {
+        0% {
+            transform: scale(0.6);
+        }
+        100% {
+            transform: scale(1);
+        }
+     }
 </style>
