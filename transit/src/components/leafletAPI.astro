@@ -500,6 +500,14 @@ import L from 'leaflet';
             // Ternary operator to set the signal class based on the accuracy of the location
             const signalClass = weakSignal ? 'weak' : 'strong';
 
+            if (signalClass === 'weak') {
+                if (map >= 50) {
+                    signalClass === 'strong';
+                } else {
+                    signalClass === 'weak';
+                }
+            } 
+
             // L.divIcon is used to create a custom div.
             const userIcon = L.divIcon({
                 className: 'userLocation',
@@ -610,16 +618,41 @@ import L from 'leaflet';
         }
         });
 
-        document.addEventListener('search-line', (e) => {
+        document.addEventListener('search-line', async (e) => {
             const searchValue = e.detail.searchName || e.detail.shortName;
 
             if (!searchValue) return;
 
             activeSearch = searchValue.toString();
             zoomInOnRefresh = true;
-            console.log('Searching for line:', activeSearch);
+            console.log('Searching for line or stop:', activeSearch);
             // renderLiveLocations();
             // transitLiveLocations();
+
+            try {
+                const response = await fetch(`/api/Stops`);
+                const stopsData = await response.json();
+                const stopArray = Array.isArray(stopsData) ? stopsData : (stopsData && stopsData.stops) || [];
+
+                const foundStop = stopArray.find(stop => {
+                    const stopName = stop.stop_name || stop.name || '';
+                    return stopName.toLowerCase().includes(activeSearch.toLowerCase());
+                });
+
+                    if (foundStop) {
+                        const lat = parseFloat(foundStop.stop_lat || foundStop.lat);
+                        const lon = parseFloat(foundStop.stop_lon || foundStop.lon);
+
+                        if (!isNaN(lat) && !isNaN(lon)) {
+                            map.flyTo([lat, lon], 16, {
+                                animate: true,
+                                duration: 1.5
+                            });
+                        }
+                    }
+            } catch (error) {
+                console.error('Error fetching stops for search:', error);
+            }
 
             stopLivePolling();
             livePolling();

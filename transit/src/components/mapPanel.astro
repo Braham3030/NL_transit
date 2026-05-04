@@ -1,5 +1,6 @@
 ---
 import Navigation from './Navigation.astro';
+import RouteTransitList from './RouteTransitList.astro';
 import LiveTransitList from './LiveTransitList.astro';
 ---
 
@@ -22,10 +23,10 @@ import LiveTransitList from './LiveTransitList.astro';
     </div>
     <div class="containerRouteLive">
         <div class="tabRoute">
-            <LiveTransitList />
+            <RouteTransitList />
         </div>
         <div class="tabLive">
-            <h3>Test</h3>
+            <LiveTransitList />
         </div>
     </div>
     <div class="navigationContainer">
@@ -281,6 +282,8 @@ import LiveTransitList from './LiveTransitList.astro';
 
     const searchWords = ["transit", "stop", "route"];
     const searchText = document.getElementById("searchText");
+    let currentWordIndex = 0;
+
 
     setInterval(() => {
 
@@ -288,11 +291,13 @@ import LiveTransitList from './LiveTransitList.astro';
         searchText.classList.add('slideOut');
 
         setTimeout(() => {
-        document.getElementById("searchText").textContent = `${searchWords[Math.floor(Math.random() * searchWords.length)]}`;
-        searchText.classList.remove('slideOut');
-        searchText.classList.add('slideIn');
-    },
-        800);
+            // currentWordIndex starts at "0" and increases with "1" each interval
+            // The "%" here makes the loop complete. It makes sure that the word goes back to the orignal "searchWords.length"
+            currentWordIndex = (currentWordIndex + 1) % searchWords.length;
+            searchText.textContent = searchWords[currentWordIndex];
+            searchText.classList.remove('slideOut');
+            searchText.classList.add('slideIn');
+    }, 800);
 }, 2000);
 
 

@@ -2,179 +2,42 @@
 ---
 
 <div class="liveTransitListContainer">
-    <h3 class="liveTransitListTitle"></h3>
-    <ul class="liveTransitList">
-        <li></li>
-        <!-- <li>Test time 1</li>
-        <li>Test time 2</li>
-        <li>Test time 3</li>
-        <li>Test time 4</li>
-        <li>Test time 5</li>
-        <li>Test time 6</li>
-        <li>Test time 7</li>
-        <li>Test time 8</li>
-        <li>Test time 9</li> -->
+    <h3>Live transit in area</h3>
+    <ul>
+        <li>Live transit times based on API data and user location</li>
     </ul>
 </div>
 
 <script>
     // @ts-nocheck
-    // Live transit times based on API data and user location
 
-    document.addEventListener("liveLocationUpdate", (e) => {
-        const transit = e.detail;
-        const shortName = transit.shortName;
-        const longName = transit.longName;
-
-        const transitInfos = transit.transitInfo;
-        const transitInfoTitle = transit.transitInfoTitle;
-
-        //  const title = document.querySelector(".liveTransitListTitle");
-
-        //  title.innerHTML = "";
-
-        //  fallback if no transit info is available
-        //  if (!transitInfoTitle || transitInfoTitle.length === 0) {
-        //     title.innerHTML = `Live transit times`
-        //  }
-        
-
-        const list = document.querySelector(".liveTransitList");
-
-        const containerBox = document.querySelector(".liveTransitListContainer");
-
-        if (containerBox) {
-            containerBox.style.opacity = "1";
-            containerBox.style.visibility = "visible";
-        }
-
-        // Empty the list before adding new items
-
-        list.innerHTML = "";
-
-        if (!transitInfos ||transitInfos.length === 0) {
-            list.innerHTML = `<li>No live transit times available for line ${shortName}</li>`;
-            return;
-        }
-
-        transitInfos.forEach((transitInfo) => {
-
-            // title.innerHTML = `
-            // Live transit times for Line: ${transitInfo.shortName} 
-            // </br>${transitInfo.longName}`;
-            
-            const li = document.createElement("li");
-
-            
-            if (!transitInfo.routeColor || transitInfo.routeColor.includes("undefined") || transitInfo.routeColor.includes("null") || transitInfo.routeColor === "#") {
-                transitInfo.routeColor = "rgba(0, 0, 0, 0.4)";
-            }
-
-            if (!transitInfo.routeTextColor || transitInfo.routeTextColor.includes("undefined") || transitInfo.routeTextColor.includes("null") || transitInfo.routeTextColor === "#") {
-                transitInfo.routeTextColor = "rgba(255, 255, 255, 0.9)";
-            }
-
-            li.style.backgroundColor = transitInfo.routeColor;
-            li.style.color = transitInfo.routeTextColor;
-
-            console.log(transitInfo.routeColor, transitInfo.routeTextColor);
-
-            if (transitInfo.distance && transitInfo.distance !== Infinity) {
-                const distanceTo = Math.round(transitInfo.distance);
-            }
-
-            li.innerHTML = `
-            Line: ${transitInfo.shortName}
-            </br>${transitInfo.longName}`;
-
-            // Click even listener for the list items
-
-        // CustomEvent is a way to send custom events data, when an action happend.
-        // https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
-        li.addEventListener("click", () => {
-            document.dispatchEvent(new CustomEvent("line-check", {
-                detail: {
-                    lat: transitInfo.lat,
-                    lon: transitInfo.lon,
-                }
-            }));
-        });
-
-            // list.appendChild gets the list item and puts it in the list
-            list.appendChild(li);
-        });
-    });
-
-
-
-    document.addEventListener("search-line", (e) => {
-        const searchName = e.detail.searchName || e.detail.shortName;
-
-        const title = document.querySelector(".liveTransitListTitle");
-
-        if (searchName && title) {
-            title.innerHTML = `Live transit times for Line: <b>${searchName}</b>`;
-        }
-        
-    })
-
-
-    
+    // Live transit on map based on mapview on map
 </script>
 
-
 <style>
-    h3 {
-        width: fit-content;
-        height: fit-content;
-        color: white;
-        font-size: 22px;
-
-        transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
-    }
-    div {
+    .liveTransitListContainer {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         justify-content: center;
         flex-direction: column;
-        margin-bottom: 10em;
-        visibility: hidden;
-        opacity: 0;
-        transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+        width: 100%;
+        height: 100%;
+        padding: 2em;
+        border: 2px solid red;
+
+        > h3 {
+            color: white;
+            font-size: 28px;
+        }
 
         > ul {
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            flex-direction: row;
-            gap: 1em;
+            color: white;
             list-style-type: none;
             padding: 0;
             margin: 0;
-            background-color: transparent;
-
-            min-width: 8em;
-            max-width: 24em;
-            overflow-x: scroll;
-            overflow-y: visible;
-            scroll-snap-type: mandatory;
-            scrollbar-color: transparent transparent;
-
-            > li {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                border-radius: 18px;
-                height: fit-content;
-                width: fit-content;
-                padding: 1em 1em;
-                cursor: pointer;
-                white-space: nowrap;
-                /* color: white;
-                background-color: rgba(255, 255, 255, 0.26);
-                box-shadow: 0 2px 5px rgba(255, 255, 255, 0.3); */
-                backdrop-filter: blur(2px);
-            }
+            border-radius: 18px;
+            background-color: rgba(255, 255, 255, 0.26);
+            padding: 1em;
         }
     }
 </style>
