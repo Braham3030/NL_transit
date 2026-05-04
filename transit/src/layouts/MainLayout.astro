@@ -3,13 +3,14 @@ import LeafletMap from '../components/leafletAPI.astro';
 import MapPanel from '../components/mapPanel.astro';
 import Header from '../components/Header.astro';
 import Legend from '../components/Legend.astro';
+import UserLocation from '../components/UserLocationButton.astro';
 ---
 
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
+		<link rel="icon" type="image/svg+xml" href="/busIcon.svg" />
+		<link rel="icon" href="/busIcon.svg" />
 		<meta name="viewport" content="width=device-width" />
 		<meta name="generator" content={Astro.generator} />
 		<link rel="stylesheet" href="styles/styles.css" />
@@ -18,6 +19,7 @@ import Legend from '../components/Legend.astro';
 	<body>
 		<Header />
 		<LeafletMap />
+		<UserLocation />
 		<Legend />
 		<MapPanel />
 	</body>

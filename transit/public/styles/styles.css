@@ -65,10 +65,15 @@ body {
 } */
 
 
-body:has(.panelBox.open) .Legend {
+body:has(.panelBox.open) :is(.Legend, .userLocationBtn),
+body:has(#Search:focus) :is(.Legend, .userLocationBtn) {
         bottom: 2em !important;
         opacity: 0 !important;
     }
+
+body:has(.Legend > details[open]) .userLocationBtn {
+    bottom: 23em !important;
+}
 
 
 @keyframes slideDown {
@@ -86,7 +91,7 @@ body:has(.panelBox.open) .Legend {
 
 /* Desktop sizing */
 
-@media (min-width: 1200px) {
+@media (min-width: 800px) {
     /* body:has(.panelBox.open) .leaflet-top {
     margin-top: 10dvh;
     margin-left: 24vw !important;

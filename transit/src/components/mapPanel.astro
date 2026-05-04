@@ -20,11 +20,11 @@ import LiveTransitList from './LiveTransitList.astro';
             <span></span>
         </button>
     </div>
-    <div class="containerRouteTime">
-        <div class="tabTime">
+    <div class="containerRouteLive">
+        <div class="tabRoute">
             <LiveTransitList />
         </div>
-        <div class="tabRoute">
+        <div class="tabLive">
             <h3>Test</h3>
         </div>
     </div>
@@ -39,42 +39,42 @@ import LiveTransitList from './LiveTransitList.astro';
     const handle = document.getElementById("panelHandleContainer");
     const searchBoxContainer = document.querySelector(".searchBoxContainer");
 
-    const timeTab = document.querySelector(".tabTime");
     const routeTab = document.querySelector(".tabRoute");
-    const timeBtn = document.querySelector(".timeBtn");
+    const liveTab = document.querySelector(".tabLive");
     const routeBtn = document.querySelector(".routeBtn");
+    const liveBtn = document.querySelector(".liveBtn");
 
-    if (timeTab && routeTab) {
-        timeTab.style.opacity = "1";
-        timeTab.style.visibility = "visible";
-        timeTab.style.top = "0em";
-
-        routeTab.style.opacity = "0";
-        routeTab.style.visibility = "hidden";
-        routeTab.style.top = "20em";
-    }
-    
-    timeBtn.addEventListener("click", () => {
-        if (timeTab && routeTab) {
-        timeTab.style.opacity = "1";
-        timeTab.style.visibility = "visible";
-        timeTab.style.top = "0em";
-
-        routeTab.style.opacity = "0";
-        routeTab.style.visibility = "hidden";
-        routeTab.style.top = "20em";
-        }
-    })
-
-    routeBtn.addEventListener("click", () => {
-        if (timeTab && routeTab) {
-        timeTab.style.opacity = "0";
-        timeTab.style.visibility = "hidden";
-        timeTab.style.top = "20em";
-        
+    if (routeTab && liveTab) {
         routeTab.style.opacity = "1";
         routeTab.style.visibility = "visible";
         routeTab.style.top = "0em";
+
+        liveTab.style.opacity = "0";
+        liveTab.style.visibility = "hidden";
+        liveTab.style.top = "20em";
+    }
+
+    routeBtn.addEventListener("click", () => {
+        if (routeTab && liveTab) {
+        routeTab.style.opacity = "1";
+        routeTab.style.visibility = "visible";
+        routeTab.style.top = "0em";
+
+        liveTab.style.opacity = "0";
+        liveTab.style.visibility = "hidden";
+        liveTab.style.top = "20em";
+        }
+    })
+
+    liveBtn.addEventListener("click", () => {
+        if (routeTab && liveTab) {
+        routeTab.style.opacity = "0";
+        routeTab.style.visibility = "hidden";
+        routeTab.style.top = "20em";
+        
+        liveTab.style.opacity = "1";
+        liveTab.style.visibility = "visible";
+        liveTab.style.top = "0em";
         }
     })
 
@@ -432,8 +432,9 @@ import LiveTransitList from './LiveTransitList.astro';
 
             cursor: grab;
             touch-action: none;
+            transform: translate(0, 0) rotate(0);
 
-            transition: width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+            transition: width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), transform 0.6s cubic-bezier(0.33, 0.72, 0, 1.18);
 
         &:active {
             /* width: 10em; */
@@ -733,7 +734,7 @@ import LiveTransitList from './LiveTransitList.astro';
             animation: SlideOutText 0.8s ease-in-out forwards;
         }
 
-        .containerRouteTime {
+        .containerRouteLive {
             flex: 1;
             width: fit-content;
             margin: 0 auto;
@@ -744,7 +745,7 @@ import LiveTransitList from './LiveTransitList.astro';
             padding-bottom: 5em;
         }
 
-        .tabTime, .tabRoute {
+        .tabLive, .tabRoute {
             /* display: none; */
             display: flex;
             align-items: center;

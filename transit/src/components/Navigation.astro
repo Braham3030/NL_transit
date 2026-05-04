@@ -6,17 +6,17 @@ import Route from './Route.astro';
 
 <nav>
     <ul>
-        <li class="nav-item timeBtn active">
+        <li class="nav-item routeBtn active">
             <Time />
         </li>
-        <li class="nav-item routeBtn">
+        <li class="nav-item liveBtn">
             <Route />
         </li>
     </ul>
 </nav>
 
-<div id="time-result"></div>
 <div id="routes-result"></div>
+<div id="live-result"></div>
 
 <script>
     // @ts-nocheck
@@ -32,17 +32,17 @@ import Route from './Route.astro';
         ul.style.setProperty("--bg-left", `${left}px`);
         ul.style.setProperty("--bg-width", `${width}px`);
 
-        const isTime = activeItem.classList.contains("timeBtn");
+        const isTime = activeItem.classList.contains("routeBtn");
 
         // Based on active tab, the following html will be shown or hidden
-        document.querySelector(".tabTime").style.opacity = isTime ? "1" : "0";
-        document.querySelector(".tabTime").style.visibility = isTime ? "visible" : "hidden";
-        document.querySelector(".tabTime").style.Top = isTime ? "0" : "20em";
+        document.querySelector(".tabRoute").style.opacity = isTime ? "1" : "0";
+        document.querySelector(".tabRoute").style.visibility = isTime ? "visible" : "hidden";
+        document.querySelector(".tabRoute").style.Top = isTime ? "0" : "20em";
 
         
-        document.querySelector(".tabRoute").style.opacity = isTime ? "0" : "1";
-        document.querySelector(".tabRoute").style.visibility = isTime ? "hidden" : "visible";
-        document.querySelector(".tabRoute").style.Top = isTime ? "20em" : "0";
+        document.querySelector(".tabLive").style.opacity = isTime ? "0" : "1";
+        document.querySelector(".tabLive").style.visibility = isTime ? "hidden" : "visible";
+        document.querySelector(".tabLive").style.Top = isTime ? "20em" : "0";
     }
 
     const startActive = document.querySelector(".nav-item.active");
@@ -62,7 +62,7 @@ import Route from './Route.astro';
             moveBackground(item);
 
             setTimeout(() => {
-                ul?.classList.add("glowBox");
+                ul.classList.add("glowBox");
             }, 800);
         });
     });

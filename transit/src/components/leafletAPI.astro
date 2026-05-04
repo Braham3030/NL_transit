@@ -537,7 +537,19 @@ import L from 'leaflet';
                 map.flyTo(userLocation, 16, {
                     animate: true,
                     duration: 2
-                })
+                });
+            });
+
+            const userLocationBtn = document.querySelector('.userLocationBtn');
+            userLocationBtn.addEventListener("click", () => {
+                map.flyTo(userLocation, 16, {
+                    animate: true,
+                    duration: 2
+                });
+
+                setTimeout(() => {
+                    userLocationBtn.classList.add('clicked');
+                }, 1000);
             })
 
            
