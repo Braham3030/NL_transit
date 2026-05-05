@@ -70,25 +70,40 @@ import Live from './Live.astro';
     let isDragging = false;
     let startX = 0;
     let startLeft = 0;
+    let hasMoved = false;
 
     ul?.addEventListener("pointerdown", (e) => {
         isDragging = true;
+        hasMoved = false;
         startX = e.clientX;
 
         const currentLeft = ul.style.getPropertyValue("--bg-left");
         startLeft = parseFloat(currentLeft) || startActive.offsetLeft;
 
-        ul.classList.add("dragging");
-        ul.classList.remove("glowBox");
+        // ul.classList.add("dragging");
+        // ul.classList.remove("glowBox");
 
         // Browser keeps following the pointer even if it goes outside the element
-        ul.setPointerCapture(e.pointerId);
+        // ul.setPointerCapture(e.pointerId);
     });
 
     ul?.addEventListener("pointermove", (e) => {
         if (!isDragging) return;
 
         const deltaX = e.clientX - startX;
+
+        // Using deltaX > 5 || deltaX < -5 to ensure the small movement does not trigger the dragging state and conflicts.
+        if (deltaX > 5 || deltaX < -5) {
+            if (!hasMoved) {
+            hasMoved = true;
+            ul.classList.remove("glowBox");
+            ul.classList.add("dragging");
+
+            // Browser keeps following the pointer even if it goes outside the element
+            ul.setPointerCapture(e.pointerId);
+        }
+
+        // Calculate new let position based on pointer movement
         let newLeft = startLeft + deltaX;
 
         const firstLeft = navItems[0].offsetLeft;
@@ -98,11 +113,15 @@ import Live from './Live.astro';
 
 
         ul.style.setProperty("--bg-left", `${newLeft}px`);
+    }
     });
 
     ul?.addEventListener("pointerup", (e) => {
         if (!isDragging) return;
         isDragging = false;
+
+        if (hasMoved) {
+
         ul.classList.remove("dragging");
         ul.releasePointerCapture(e.pointerId);
 
@@ -127,6 +146,9 @@ import Live from './Live.astro';
         setTimeout(() => {
             ul?.classList.add("glowBox");
         }, 800);
+        }
+
+        
     });
 
     // document.querySelector("#time")?.addEventListener("click", () => {
