@@ -5,6 +5,7 @@
 <!-- https://www.svgrepo.com/svg/532533/location-arrow-alt -->
 
 <div class="userLocationBtn">
+    <p>Navigating</p>
     <div>
         <svg xmlns="http://www.w3.org/2000/svg" width="50px" height="50px" viewBox="0 0 24 24" fill="var(--fill-color-svg)">
             <path d="M10.9792 4.26973L4.59197 18.4636C4.10239 19.5516 3.85761 20.0955 3.9608 20.4146C4.05015 20.6908 4.2714 20.9042 4.55064 20.9836C4.87315 21.0753 5.40801 20.8112 6.47772 20.283L11.2921 17.9055C11.552 17.7771 11.682 17.713 11.8181 17.6877C11.9387 17.6653 12.0624 17.6653 12.183 17.6877C12.3192 17.713 12.4491 17.7771 12.709 17.9055L17.5234 20.283C18.5931 20.8112 19.128 21.0753 19.4505 20.9836C19.7298 20.9042 19.951 20.6908 20.0403 20.4146C20.1435 20.0955 19.8988 19.5516 19.4092 18.4636L13.0219 4.26973C12.6979 3.54967 12.5359 3.18964 12.3108 3.07837C12.1153 2.98169 11.8859 2.98169 11.6903 3.07837C11.4653 3.18964 11.3032 3.54967 10.9792 4.26973Z" stroke="#ffffff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -27,10 +28,12 @@
         opacity: 1;
 
         position: absolute;
+        anchor-name: --p-anchor;
         bottom: 14em;
         right: 1.3em;
         z-index: 1000;
-        transform: translate(0, 0) rotate(36deg);
+        transform: translate(0, 0) rotate(0deg);
+        overflow: hidden;
 
         color: white;
         background-color: rgba(0, 0, 0, 0.7);
@@ -40,11 +43,37 @@
         animation: LocationSlideIn 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) 1s backwards;
         transition: transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), right 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 1.4s cubic-bezier(0.33, 0.72, 0, 1.18);
 
+        > p {
+                /* color: transparent;
+                opacity: 0;
+                visibility: hidden; */
+                position-anchor: --p-anchor;
+                left: 50%;
+                top: 0%;
+                transform: translate(-50%, 0%);
+                opacity: 0;
+                visibility: hidden;
+                color: white;
+                font-size: 22px;
+                /* border: 2px solid red; */
+                /* top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%); */
+
+                transition: transform 1s cubic-bezier(0.33, 0.72, 0, 1.18), left 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), visibility 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+        }
+
         > div {
-        > svg {
-            transform: scale(1);
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%) rotate(36deg) scale(1);
             cursor: pointer;
+
             animation: svgScaleIn 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) 1.4s backwards;
+            transition: transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+        > svg {
+           
         }
     }
     }
@@ -54,16 +83,40 @@
         --fill-color-svg: rgba(0, 0, 0, 0.8);
         transform: translate(0, 0) rotate(0deg);
         opacity: 1;
-        width: 4em;
-        height: 4em
+        /* width: 4em;
+        height: 4em */
 
         background-color: rgba(0, 0, 0, 0.8);
         box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(10px);
 
+        animation: userLocationSearch 4s cubic-bezier(0.33, 0.72, 0, 1.18) backwards,
+                   LocationSlideIn 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) backwards;
+
+        > p {
+                left: 25%;
+                transform: translate(-20%, 0%);
+                opacity: 1;
+                visibility: visible;
+
+                animation: textSlideOut 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) 2.5s forwards;
+            }
+            
         > div {
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(0deg) scale(1);
+            cursor: pointer;
+
+            animation: iconPositionChange 5s cubic-bezier(0.33, 0.72, 0, 1.18) backwards,
+                       svgScaleIn 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) backwards;
+            transition: transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.6s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+            > svg {
+                
+            }
     }
     }
+
 
     @keyframes LocationSlideIn {
         0% {
@@ -73,16 +126,10 @@
             opacity: 0;
             border-radius: 25%;
         }
-        50% {
-            width: 4em;
-            height: 4em;
-            transform: translate(0, 0) rotate(36deg);
-            opacity: 1;
-        }
         100% {
             width: 4em;
             height: 4em;
-            transform: translate(0, 0) rotate(36deg);
+            transform: translate(0, 0) rotate(0deg);
             opacity: 1;
             border-radius: 50%;
         }
@@ -90,10 +137,61 @@
 
     @keyframes svgScaleIn {
         0% {
-            transform: scale(0.6);
+            transform: translate(-50%, -50%) rotate(36deg) scale(0.6);
         }
         100% {
-            transform: scale(1);
+            transform: translate(-50%, -50%) rotate(36deg) scale(1);
+        }
+     }
+
+     @keyframes userLocationSearch {
+        0% {
+            width: 4em;
+            height: 4em;
+            border-radius: 50%;
+        }
+        25% {
+            width: 12em;
+            height: 4em;
+            border-radius: 18px;
+        }
+        75% {
+            width: 12em;
+            height: 4em;
+            border-radius: 18px;
+        }
+        100% {
+            width: 4em;
+            height: 4em;
+            border-radius: 50%;
+        }
+     }
+
+     @keyframes iconPositionChange {
+        0% {
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(36deg) scale(1);
+        }
+        50% {
+            left: 80%;
+            transform: translate(-50%, -50%) rotate(0deg) scale(1);
+        }
+        100% {
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(0deg) scale(1);
+        }
+     }
+
+     @keyframes textSlideOut {
+        0% {
+            opacity: 1;
+            visibility: visible;
+             transform: translate(-20%, 0%);
+        }
+        100% {
+            opacity: 0;
+            visibility: hidden;
+             transform: translate(-50%, 0%);
         }
      }
 </style>

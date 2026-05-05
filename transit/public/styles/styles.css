@@ -73,7 +73,7 @@ body {
 
 
 body:has(.panelBox.open) :is(.Legend, .userLocationBtn),
-body:has(#Search:focus) :is(.Legend, .userLocationBtn) {
+body:has(#Search:focus-within) :is(.Legend, .userLocationBtn) {
         bottom: 2em !important;
         opacity: 0 !important;
     }
@@ -142,6 +142,22 @@ body:has(.Legend > details[open]) .userLocationBtn {
         bottom: 16em !important;
     }
 
+    body:has(.panelBox.open) :is(.Legend, .userLocationBtn),
+    body:has(#Search:focus-within) :is(.Legend, .userLocationBtn) {
+        bottom: 7em !important;
+        opacity: 1 !important;
+    }
+
+    body:has(.panelBox.open) .Legend,
+    body:has(#Search:focus) .Legend {
+        bottom: 2em !important;
+        opacity: 1 !important;
+    }
+
+    body:has(details[open]):has(#Search:focus) .userLocationBtn {
+        bottom: 16em !important;
+    }
+
     .Legend {
         right: 1.3em !important;
         bottom: 2em !important;
@@ -160,10 +176,7 @@ body:has(.Legend > details[open]) .userLocationBtn {
             }
         }
 
-        > details[open] {
-            /* bottom: auto !important;
-            right: 0 !important;
-            top: 0 !important; */
-        }
+        /* > details[open] {
+        } */
     }
 }
