@@ -10,6 +10,7 @@ body {
     height: 100vh;
     margin: 0;
     padding: 0;
+    background-color: black;
 
     > header {
         z-index: 11111;

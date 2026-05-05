@@ -5,11 +5,6 @@ import path from 'node:path';
 export async function GET({ request }) {
 
     const url = new URL(request.url);
-    // const minLat = parseFloat(url.searchParams.get('minLat'));
-    // const maxLat = parseFloat(url.searchParams.get('maxLat'));
-    // const minLon = parseFloat(url.searchParams.get('minLon'));
-    // const maxLon = parseFloat(url.searchParams.get('maxLon'));
-
     const routeID = url.searchParams.get('route_id');
     
     try {

@@ -12,8 +12,12 @@ import LiveTransitList from './LiveTransitList.astro';
     <!-- <h2>Panel</h2> -->
     <div class="searchBoxContainer">
     <label for="Search" class="searchBox">
-        <input type="text" id="Search" placeholder="" autocorrect="off">
+        <input type="text" id="Search" placeholder="" autocorrect="off" list="searchOptions">
         <span id="searchTextBox">Search for <span id="searchText"></span></span>
+
+        <!-- Browser dropdown for search -->
+         <!-- https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/datalist -->
+        <datalist id="searchOptions"></datalist>
         
     </label>
     <button class="closeBtn" type="button">
@@ -40,44 +44,44 @@ import LiveTransitList from './LiveTransitList.astro';
     const handle = document.getElementById("panelHandleContainer");
     const searchBoxContainer = document.querySelector(".searchBoxContainer");
 
-    const routeTab = document.querySelector(".tabRoute");
-    const liveTab = document.querySelector(".tabLive");
-    const routeBtn = document.querySelector(".routeBtn");
-    const liveBtn = document.querySelector(".liveBtn");
+    // const routeTab = document.querySelector(".tabRoute");
+    // const liveTab = document.querySelector(".tabLive");
+    // const routeBtn = document.querySelector(".routeBtn");
+    // const liveBtn = document.querySelector(".liveBtn");
 
-    if (routeTab && liveTab) {
-        routeTab.style.opacity = "1";
-        routeTab.style.visibility = "visible";
-        routeTab.style.top = "0em";
+    // if (routeTab && liveTab) {
+    //     routeTab.style.opacity = "1";
+    //     routeTab.style.visibility = "visible";
+    //     routeTab.style.top = "0em";
 
-        liveTab.style.opacity = "0";
-        liveTab.style.visibility = "hidden";
-        liveTab.style.top = "20em";
-    }
+    //     liveTab.style.opacity = "0";
+    //     liveTab.style.visibility = "hidden";
+    //     liveTab.style.top = "20em";
+    // }
 
-    routeBtn.addEventListener("click", () => {
-        if (routeTab && liveTab) {
-        routeTab.style.opacity = "1";
-        routeTab.style.visibility = "visible";
-        routeTab.style.top = "0em";
+    // routeBtn.addEventListener("click", () => {
+    //     if (routeTab && liveTab) {
+    //     routeTab.style.opacity = "1";
+    //     routeTab.style.visibility = "visible";
+    //     routeTab.style.top = "0em";
 
-        liveTab.style.opacity = "0";
-        liveTab.style.visibility = "hidden";
-        liveTab.style.top = "20em";
-        }
-    })
+    //     liveTab.style.opacity = "0";
+    //     liveTab.style.visibility = "hidden";
+    //     liveTab.style.top = "20em";
+    //     }
+    // })
 
-    liveBtn.addEventListener("click", () => {
-        if (routeTab && liveTab) {
-        routeTab.style.opacity = "0";
-        routeTab.style.visibility = "hidden";
-        routeTab.style.top = "20em";
+    // liveBtn.addEventListener("click", () => {
+    //     if (routeTab && liveTab) {
+    //     routeTab.style.opacity = "0";
+    //     routeTab.style.visibility = "hidden";
+    //     routeTab.style.top = "20em";
         
-        liveTab.style.opacity = "1";
-        liveTab.style.visibility = "visible";
-        liveTab.style.top = "0em";
-        }
-    })
+    //     liveTab.style.opacity = "1";
+    //     liveTab.style.visibility = "visible";
+    //     liveTab.style.top = "0em";
+    //     }
+    // })
 
     let isOpen = false;
 
@@ -376,6 +380,32 @@ import LiveTransitList from './LiveTransitList.astro';
             panel.style.opacity = "";
             
         }
+    });
+
+    const searchInput = document.getElementById("Search");
+    const searchOptions = document.getElementById("searchOptions");
+
+    searchInput?.addEventListener("focus", async () => {
+        if (searchOptions.options.length > 0) return;
+
+        const routeResponse = await fetch("/api/Routes");
+        const stopsResponse = await fetch("/api/Stops");
+
+        const routeData = await routeResponse.json();
+        const stopsData = await stopsResponse.json();
+
+        let dropDownSearch = "";
+
+        routeData.forEach(route => {
+            dropDownSearch += `<option value="${route.route_short_name}">${route.route_short_name} - ${route.route_long_name}</option>`;
+        })
+
+        stopsData.forEach(stop => {
+            dropDownSearch += `<option value="${stop.stop_name}">${stop.stop_name}</option>`;
+        })
+        
+
+        searchOptions.innerHTML = dropDownSearch;
     })
     
 

@@ -32,21 +32,54 @@ import Live from './Live.astro';
         ul.style.setProperty("--bg-left", `${left}px`);
         ul.style.setProperty("--bg-width", `${width}px`);
 
-        const isTime = activeItem.classList.contains("routeBtn");
+        // const isTime = activeItem.classList.contains("routeBtn");
 
-        // Based on active tab, the following html will be shown or hidden
-        document.querySelector(".tabRoute").style.opacity = isTime ? "1" : "0";
-        document.querySelector(".tabRoute").style.visibility = isTime ? "visible" : "hidden";
-        document.querySelector(".tabRoute").style.Top = isTime ? "0" : "20em";
+        // const for every item in nav to give styles based on ".active"
+        const routeTab = document.querySelector(".tabRoute");
+        const liveTab = document.querySelector(".tabLive");
+        const isRoute = activeItem.classList.contains("routeBtn");
 
-        
-        document.querySelector(".tabLive").style.opacity = isTime ? "0" : "1";
-        document.querySelector(".tabLive").style.visibility = isTime ? "hidden" : "visible";
-        document.querySelector(".tabLive").style.Top = isTime ? "20em" : "0";
+
+        // If the active item "isRoute" is true, then first style will apply. Otherwise the second style will apply
+    if (routeTab && liveTab) {
+        routeTab.style.opacity = isRoute ?  "1" : "0";
+        routeTab.style.visibility = isRoute ? "visible" : "hidden";
+        routeTab.style.top = isRoute ? "0em" : "20em";
+
+        liveTab.style.opacity = isRoute ?  "0" : "1";
+        liveTab.style.visibility = isRoute ?  "hidden" : "visible";
+        liveTab.style.top = isRoute ? "20em" : "0em";
     }
 
-    const startActive = document.querySelector(".nav-item.active");
-    moveBackground(startActive);
+
+
+        // Based on active tab, the following html will be shown or hidden
+
+        // document.querySelector(".tabRoute").style.opacity = isTime ? "1" : "0";
+        // document.querySelector(".tabRoute").style.visibility = isTime ? "visible" : "hidden";
+        // document.querySelector(".tabRoute").style.Top = isTime ? "0" : "20em";
+
+        
+        // document.querySelector(".tabLive").style.opacity = isTime ? "0" : "1";
+        // document.querySelector(".tabLive").style.visibility = isTime ? "hidden" : "visible";
+        // document.querySelector(".tabLive").style.Top = isTime ? "20em" : "0";
+    }
+
+    // const startActive = document.querySelector(".nav-item.active");
+    // moveBackground(startActive);
+
+    const inBackground = () => {
+        const activeItem = document.querySelector(".nav-item.active");
+        moveBackground(activeItem);
+    }
+
+    // inBackground will work when page is loading, resizing or when astro page load event is triggered
+    // astro:page-load
+    // https://stackoverflow.com/questions/78780819/astro-page-load-event-is-triggered-in-other-page
+    inBackground();
+        window.addEventListener("load", inBackground);
+        window.addEventListener("resize", inBackground);
+        document.addEventListener("astro:page-load", inBackground);
 
     setTimeout(() => {
         ul.classList.add("glowBox");
@@ -78,7 +111,8 @@ import Live from './Live.astro';
         startX = e.clientX;
 
         const currentLeft = ul.style.getPropertyValue("--bg-left");
-        startLeft = parseFloat(currentLeft) || startActive.offsetLeft;
+        const activeBtn = document.querySelector(".nav-item.active");
+        startLeft = parseFloat(currentLeft) || (activeBtn ? activeBtn.offsetLeft : 0);
 
         // ul.classList.add("dragging");
         // ul.classList.remove("glowBox");
