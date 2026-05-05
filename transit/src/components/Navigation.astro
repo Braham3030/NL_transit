@@ -94,6 +94,7 @@ import Live from './Live.astro';
 
         // Using deltaX > 5 || deltaX < -5 to ensure the small movement does not trigger the dragging state and conflicts.
         if (deltaX > 5 || deltaX < -5) {
+            // If the item did not move, the hasMove let will be true and dragging class will be removed
             if (!hasMoved) {
             hasMoved = true;
             ul.classList.remove("glowBox");

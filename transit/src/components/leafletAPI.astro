@@ -54,6 +54,7 @@ import L from 'leaflet';
         try {
             const responseLive = await fetch(liveLocationApi);
 
+            // Fallback for rate limit exceeded.
             if (responseLive.status === 429) {
                 stopLivePolling();
                 console.error('Rate limit exceeded for transit live locations API. Stopping live updates.');
@@ -92,6 +93,7 @@ import L from 'leaflet';
     }
 
 
+    // This function will fetch the API data in real time based on pollinRate. setTimeout is used to ensure the API fetch happens every "pollingRate" time.
     async function livePolling() {
         await transitLiveLocations();
 
@@ -99,6 +101,7 @@ import L from 'leaflet';
     }
 
     async function stopLivePolling() {
+        // clearTimeout will stop the pollingTimer to fetch from the API. This can be triggered when rate limit has been reached. Or when the user is not looking it the transit
         clearTimeout(pollingTimer);
     }
 
@@ -615,18 +618,21 @@ import L from 'leaflet';
                 stopsInView();
             }
         } else {
+            // If the map already has the stopClusters layer, it will be removed to clear the map. This will enhance UX, because the user will not see many stops on screen when zoomed out.
             if (map.hasLayer(stopsClusters)) {
                 map.removeLayer(stopsClusters);
             }
         }
         });
 
+        // Usage of customEven to trigger a search for a line or stop.
         document.addEventListener('search-line', async (e) => {
             const searchValue = e.detail.searchName || e.detail.shortName;
 
             if (!searchValue) return;
 
             activeSearch = searchValue.toString();
+            // zoomInOnRefresh is used to ensure that the map will zoom to the line
             zoomInOnRefresh = true;
             console.log('Searching for line or stop:', activeSearch);
             // renderLiveLocations();
@@ -643,9 +649,11 @@ import L from 'leaflet';
                 });
 
                     if (foundStop) {
+                        // If the stops are found, locate the lat and lon. parseFloat is used to force find the lat and lon
                         const lat = parseFloat(foundStop.stop_lat || foundStop.lat);
                         const lon = parseFloat(foundStop.stop_lon || foundStop.lon);
 
+                        // If the lat and lon are found, fly to the location of the stop or line
                         if (!isNaN(lat) && !isNaN(lon)) {
                             map.flyTo([lat, lon], 16, {
                                 animate: true,
@@ -683,6 +691,7 @@ import L from 'leaflet';
 
 
 
+    // When the line has been checked in the panel, fly to the location of the line.
     document.addEventListener("line-check", (e) => {
         const transitLat = e.detail.lat;
         const transitLon = e.detail.lon;

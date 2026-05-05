@@ -153,6 +153,9 @@ import LiveTransitList from './LiveTransitList.astro';
         if (windowWidth > 1200) {
             minWidth = windowWidth * 0.2;
             maxWidth = windowWidth * 0.24;
+        } else if (windowWidth > 800 && windowWidth < 1199) {
+            minWidth = windowWidth * 0.3;
+            maxWidth = windowWidth * 0.4;
         } else {
             minWidth = windowWidth * 0.9;
             maxWidth = windowWidth * 1;
