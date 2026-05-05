@@ -13,6 +13,25 @@
     </div>
 </div>
 
+<script>
+    // @ts-nocheck
+
+    const userLocationBtn = document.querySelector(".userLocationBtn");
+    if (userLocationBtn) {
+        userLocationBtn.addEventListener("mousemove", (e) => {
+            // getBoundingClientRect calculates the size of the element and keeps the mouse calculations in the next "const" within the panel
+            const rect = userLocationBtn.getBoundingClientRect();
+
+            // This is the calculation for mouse position in x and in y axis
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            userLocationBtn.style.setProperty("--mouse-x", `${x}px`);
+            userLocationBtn.style.setProperty("--mouse-y", `${y}px`);
+        })
+    };
+</script>
+
 <style>
     .userLocationBtn {
 
@@ -43,6 +62,23 @@
         animation: LocationSlideIn 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) 1s backwards;
         transition: transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), right 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 1.4s cubic-bezier(0.33, 0.72, 0, 1.18);
 
+        &::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: var(--mouse-x);
+                top: var(--mouse-y);
+                transform: translate(-50%, -50%);
+                width: 100px;
+                height: 100px;
+                border-radius: 50%;
+                background-color: rgba(138, 138, 138, 0.6);
+                filter: blur(80px) brightness(15) contrast(150%) saturate(20%);
+                z-index: -1;
+                
+                transition: top 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+		    }
+
         > p {
                 /* color: transparent;
                 opacity: 0;
@@ -55,10 +91,7 @@
                 visibility: hidden;
                 color: white;
                 font-size: 22px;
-                /* border: 2px solid red; */
-                /* top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%); */
+                user-select: none;
 
                 transition: transform 1s cubic-bezier(0.33, 0.72, 0, 1.18), left 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), visibility 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
         }

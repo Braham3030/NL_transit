@@ -5,3 +5,43 @@
 <header>
 	<h1>Run for your transit</h1>
 </header>
+
+<script>
+	// @ts-nocheck
+	const header = document.querySelector("header");
+
+	 if (header) {
+        header.addEventListener("mousemove", (e) => {
+            // getBoundingClientRect calculates the size of the element and keeps the mouse calculations in the next "const" within the panel
+            const rect = header.getBoundingClientRect();
+
+            // This is the calculation for mouse position in x and in y axis
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            header.style.setProperty("--mouse-x", `${x}px`);
+            header.style.setProperty("--mouse-y", `${y}px`);
+        })
+    };
+</script>
+
+
+<style>
+	header {
+		&::before {
+			content: "";
+            position: absolute;
+            top: 0;
+            left: var(--mouse-x);
+            top: var(--mouse-y);
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: rgba(138, 138, 138, 0.6);
+            filter: blur(100px) brightness(15) contrast(150%) saturate(20%);
+
+			transition: top 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+		}
+	}
+</style>

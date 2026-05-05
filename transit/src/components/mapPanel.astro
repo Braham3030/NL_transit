@@ -9,7 +9,6 @@ import LiveTransitList from './LiveTransitList.astro';
         <span class="panelHandle"></span>
         <span class="panelHandle"></span>
     </span>
-    <!-- <h2>Panel</h2> -->
     <div class="searchBoxContainer">
     <label for="Search" class="searchBox">
         <input type="text" id="Search" placeholder="" autocorrect="off" list="searchOptions">
@@ -44,45 +43,6 @@ import LiveTransitList from './LiveTransitList.astro';
     const handle = document.getElementById("panelHandleContainer");
     const searchBoxContainer = document.querySelector(".searchBoxContainer");
 
-    // const routeTab = document.querySelector(".tabRoute");
-    // const liveTab = document.querySelector(".tabLive");
-    // const routeBtn = document.querySelector(".routeBtn");
-    // const liveBtn = document.querySelector(".liveBtn");
-
-    // if (routeTab && liveTab) {
-    //     routeTab.style.opacity = "1";
-    //     routeTab.style.visibility = "visible";
-    //     routeTab.style.top = "0em";
-
-    //     liveTab.style.opacity = "0";
-    //     liveTab.style.visibility = "hidden";
-    //     liveTab.style.top = "20em";
-    // }
-
-    // routeBtn.addEventListener("click", () => {
-    //     if (routeTab && liveTab) {
-    //     routeTab.style.opacity = "1";
-    //     routeTab.style.visibility = "visible";
-    //     routeTab.style.top = "0em";
-
-    //     liveTab.style.opacity = "0";
-    //     liveTab.style.visibility = "hidden";
-    //     liveTab.style.top = "20em";
-    //     }
-    // })
-
-    // liveBtn.addEventListener("click", () => {
-    //     if (routeTab && liveTab) {
-    //     routeTab.style.opacity = "0";
-    //     routeTab.style.visibility = "hidden";
-    //     routeTab.style.top = "20em";
-        
-    //     liveTab.style.opacity = "1";
-    //     liveTab.style.visibility = "visible";
-    //     liveTab.style.top = "0em";
-    //     }
-    // })
-
     let isOpen = false;
 
     const togglePanel = () => {
@@ -94,15 +54,7 @@ import LiveTransitList from './LiveTransitList.astro';
         } else {
             panel.classList.remove("open");
         }
-
-        // isOpen = !isOpen;
     }
-
-    // handle?.addEventListener("click", (e) => {
-    //     if (!isDragging) {
-    //         togglePanel();
-    //     }
-    // });
 
     let isDragging = false;
     let startY = 0;
@@ -122,12 +74,6 @@ import LiveTransitList from './LiveTransitList.astro';
 
         if (searchBoxContainer)
         searchBoxContainer.style.transition = "none";
-
-        // const currentBottom = panel.style.getPropertyValue("--bg-bottom");
-        // startLeft = parseFloat(currentBottom) || startActive.offsetBottom;
-
-        // panel.classList.add("dragging");
-        // panel.classList.remove("glowBox");
 
         // Browser keeps following the pointer even if it goes outside the element
         handle.setPointerCapture(e.pointerId);
@@ -165,8 +111,6 @@ import LiveTransitList from './LiveTransitList.astro';
             maxWidth = windowWidth * 1;
         }
 
-        
-
         // Calculates the height progress as a value between 0 and 1. 0 is the minimum height and 1 the maximum height.
         const progress = (newHeight - minHeight) / (maxHeight - minHeight);
 
@@ -179,18 +123,10 @@ import LiveTransitList from './LiveTransitList.astro';
 
         const newOpacity = 0.2 + (0.4 * progress);
         
-
         const newBorderRadius = 36 - (20 * progress);
 
         const newSearchBoxMarginTop = 1.6 + (4 * progress);
         const newSearchBoxMarginBottom = 8 - (2 * progress);
-
-
-
-        // const firstLeft = navItems[0].offsetLeft;
-        // const lastLeft = navItems[navItems.length - 1].offsetLeft;
-        // if (newLeft < firstLeft) newLeft = firstLeft;
-        // if (newLeft > lastLeft) newLeft = lastLeft;
 
 
         panel.style.height = `${newHeight}px`;
@@ -261,28 +197,6 @@ import LiveTransitList from './LiveTransitList.astro';
             searchBoxContainer.style.marginTop = "";
             searchBoxContainer.style.marginBottom = "";
         }
-
-        // panel.classList.remove("dragging");
-        // panel.releasePointerCapture(e.pointerId);
-
-        // const currentBottom = parseFloat(panel.style.getPropertyValue("--bg-bottom")) || 0;
-        // let closestItem = navItems[0];
-        // let minDiff = Infinity;
-        
-        // navItems.forEach(item => {
-        //     const diff = Math.abs(currentBottom - item.offsetBottom);
-        //     if (diff < minDiff) {
-        //         minDiff = diff;
-        //         closestItem = item;
-        //     }
-        // });
-
-        // navItems.forEach(i => i.classList.remove("active"));
-        // closestItem.classList.add("active");
-        // moveBackground(closestItem);
-
-        // setTimeout(() => {
-        // }, 800);
     });
 
     // Random words for search
@@ -406,10 +320,23 @@ import LiveTransitList from './LiveTransitList.astro';
         
 
         searchOptions.innerHTML = dropDownSearch;
-    })
-    
+    });
 
-    // togglePanel();
+
+    // Fun element: mouse following glow effect
+    if (panel) {
+        panel.addEventListener("mousemove", (e) => {
+            // getBoundingClientRect calculates the size of the element and keeps the mouse calculations in the next "const" within the panel
+            const rect = panel.getBoundingClientRect();
+
+            // This is the calculation for mouse position in x and in y axis
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            panel.style.setProperty("--mouse-x", `${x}px`);
+            panel.style.setProperty("--mouse-y", `${y}px`);
+        })
+    };
 
 </script>
 
@@ -426,9 +353,6 @@ import LiveTransitList from './LiveTransitList.astro';
         transform: translate(-50%, 150%) scale(0.5);
         width: 90vw;
         height: 12vh;
-        /* background-color: rgba(255, 255, 255, 0.2);
-        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(2px); */
 
         background-color: rgba(0, 0, 0, 0.8);
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
@@ -444,17 +368,36 @@ import LiveTransitList from './LiveTransitList.astro';
 
         transition: height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
 
+        &::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: var(--mouse-x);
+            top: var(--mouse-y);
+            transform: translate(-50%, -50%);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background-color: rgba(138, 138, 138, 0.6);
+            filter: blur(100px) brightness(15) contrast(150%) saturate(20%);
+
+            transition: top 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+        }
+
         > #panelHandleContainer {
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 1em;
             position: fixed;
 
-            width: 6em;
+            width: 20em;
             height: 2em;
             touch-action: none;
             cursor: grab;
+
+            transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
 
         > span {
             margin: 0.6em 0em;
@@ -465,26 +408,21 @@ import LiveTransitList from './LiveTransitList.astro';
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
             position: absolute;
             top: 0;
-            left: 0;
+            left: 50%;
+            transform: translate(-50%, 0%) rotate(0deg);
             z-index: 1000;
 
             cursor: grab;
             touch-action: none;
-            transform: translate(0, 0) rotate(0);
 
             transition: width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), transform 0.6s cubic-bezier(0.33, 0.72, 0, 1.18);
 
         &:active {
-            /* width: 10em; */
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
             cursor: grabbing;
         }
     }
     }
-
-    /* > h2 {
-        font-size: 28px;
-    } */
     }
 
     .panelBox.open {
@@ -492,29 +430,28 @@ import LiveTransitList from './LiveTransitList.astro';
         bottom: 0;
         width: 100vw;
         height: 80vh;
-        /* background-color: rgba(255, 255, 255, 0.4);
-        backdrop-filter: blur(8px); */
 
         background-color: rgba(0, 0, 0, 0.8);
         box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 2px 20px rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(15px);
 
         > #panelHandleContainer {
+            height: 3em;
 
         > span:first-of-type {
             top: 0;
-            left: 10%;
+            left: 50%;
             width: 3em;
             transform-origin: right;
-            transform: translate(50%, -50%) rotate(-35deg);
+            transform: translate(-25%, -50%) rotate(-35deg);
             background-color: rgba(0, 0, 0, 1);
             box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
         }
         > span:last-of-type {
             top: 0;
-            left: 10%;
+            left: 50%;
             width: 3em;
-            transform: translate(0%, -50%) rotate(35deg);
+            transform: translate(-75%, -50%) rotate(35deg);
             transform-origin: left;
             background-color: rgba(0, 0, 0, 1);
             box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
@@ -531,7 +468,6 @@ import LiveTransitList from './LiveTransitList.astro';
             
             background-color: rgba(0, 0, 0, 0.8);
             padding: 0;
-            /* position: relative; */
 
             > #Search {
                 width: 100%;
@@ -540,10 +476,17 @@ import LiveTransitList from './LiveTransitList.astro';
             > #searchTextBox {
                 transform: translate(9%, -50%);
             }
+            
         }
             
         }
 
+    }
+
+    /* Removal of default arrow icon */
+    /* https://www.geeksforgeeks.org/css/how-to-remove-the-default-arrow-icon-from-a-dropdown-list/ */
+    #Search::-webkit-calendar-picker-indicator {
+        display: none !important;
     }
 
     .searchBoxContainer {
@@ -555,7 +498,6 @@ import LiveTransitList from './LiveTransitList.astro';
         border-radius: 24px;
         margin-bottom: 8em;
         margin-top: 1.6em;
-        /* box-shadow: 0 0px 10px rgba(0, 0, 0, 0.8); */
         position: relative;
         
         transition: margin-bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), margin-top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
@@ -564,7 +506,6 @@ import LiveTransitList from './LiveTransitList.astro';
         width: 100%;
         border-radius: 24px;
         position: relative;
-
         background-color: rgba(0, 0, 0, 0.7);
 
 
@@ -587,16 +528,6 @@ import LiveTransitList from './LiveTransitList.astro';
             display: inline-block;
             font-weight: 700;
             text-shadow: 0 0px 4px rgba(255, 255, 255, 0.6);
-            /* position: absolute;
-            top: 50%;
-            left: 0%;
-            transform: translate(12%, -50%);
-            opacity: 1;
-            font-size: 22px;
-            display: inline-block;
-            pointer-events: none;
-
-            transition: opacity 0.8s ease-in-out, transform 0.4s ease-in-out, font-size 0.6s ease-in-out; */
         }
     }
 
@@ -612,9 +543,7 @@ import LiveTransitList from './LiveTransitList.astro';
             outline: none;
             box-shadow: 0 0px 10px rgba(255, 255, 255, 0.2);
             color: white;
-            /* background-color: rgba(255, 255, 255, 0.4); */
             background-color: transparent;
-            /* background-color: red; */
 
             transition: background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
 
@@ -673,29 +602,28 @@ import LiveTransitList from './LiveTransitList.astro';
             bottom: 0;
             width: 100vw;
             height: 80vh;
-            /* background-color: rgba(255, 255, 255, 0.4);
-            backdrop-filter: blur(8px); */
 
             background-color: rgba(0, 0, 0, 0.8);
             box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 2px 20px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(10px);
 
             > #panelHandleContainer {
+                height: 3em;
 
-            > span:first-of-type {
+             > span:first-of-type {
                 top: 0;
-                left: 10%;
+                left: 50%;
                 width: 3em;
                 transform-origin: right;
-                transform: translate(50%, -50%) rotate(-35deg);
+                transform: translate(-25%, -50%) rotate(-35deg);
                 background-color: rgba(0, 0, 0, 1);
                 box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
             }
             > span:last-of-type {
                 top: 0;
-                left: 10%;
+                left: 50%;
                 width: 3em;
-                transform: translate(0%, -50%) rotate(35deg);
+                transform: translate(-75%, -50%) rotate(35deg);
                 transform-origin: left;
                 background-color: rgba(0, 0, 0, 1);
                 box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
@@ -718,17 +646,11 @@ import LiveTransitList from './LiveTransitList.astro';
                     transition: opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), transform 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), font-size 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18);
                 }
                 
-
-                /* box-shadow: 0 0px 30px rgba(0, 0, 0, 1); */
-
                 > #Search {
-                    /* background-color: red; */
                     box-shadow: 0 0px 30px rgb(255, 255, 255);
                     width: 80%;
                     background-color: transparent;
                 }
-
-                
             }
 
             > .closeBtn {
@@ -760,10 +682,9 @@ import LiveTransitList from './LiveTransitList.astro';
             opacity: 0;
             transform: translate(20%, -50%);
             left: 20%;
-        }
+            }
         }
         
-
         .slideIn {
             animation: SlideInText 0.8s ease-in-out forwards;
         }
@@ -784,7 +705,6 @@ import LiveTransitList from './LiveTransitList.astro';
         }
 
         .tabLive, .tabRoute {
-            /* display: none; */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -830,13 +750,6 @@ import LiveTransitList from './LiveTransitList.astro';
     }
 
     /* Desktop layout */
-
-    /* .panelBox {
-        width: if(
-            media(max-width: 768px): 80vw,
-            else: 20vw
-        )
-    } */
 
     @media (min-width: 1200px) {
         .panelBox {

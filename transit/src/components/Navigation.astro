@@ -32,8 +32,6 @@ import Live from './Live.astro';
         ul.style.setProperty("--bg-left", `${left}px`);
         ul.style.setProperty("--bg-width", `${width}px`);
 
-        // const isTime = activeItem.classList.contains("routeBtn");
-
         // const for every item in nav to give styles based on ".active"
         const routeTab = document.querySelector(".tabRoute");
         const liveTab = document.querySelector(".tabLive");
@@ -50,23 +48,7 @@ import Live from './Live.astro';
         liveTab.style.visibility = isRoute ?  "hidden" : "visible";
         liveTab.style.top = isRoute ? "20em" : "0em";
     }
-
-
-
-        // Based on active tab, the following html will be shown or hidden
-
-        // document.querySelector(".tabRoute").style.opacity = isTime ? "1" : "0";
-        // document.querySelector(".tabRoute").style.visibility = isTime ? "visible" : "hidden";
-        // document.querySelector(".tabRoute").style.Top = isTime ? "0" : "20em";
-
-        
-        // document.querySelector(".tabLive").style.opacity = isTime ? "0" : "1";
-        // document.querySelector(".tabLive").style.visibility = isTime ? "hidden" : "visible";
-        // document.querySelector(".tabLive").style.Top = isTime ? "20em" : "0";
     }
-
-    // const startActive = document.querySelector(".nav-item.active");
-    // moveBackground(startActive);
 
     const inBackground = () => {
         const activeItem = document.querySelector(".nav-item.active");
@@ -113,12 +95,6 @@ import Live from './Live.astro';
         const currentLeft = ul.style.getPropertyValue("--bg-left");
         const activeBtn = document.querySelector(".nav-item.active");
         startLeft = parseFloat(currentLeft) || (activeBtn ? activeBtn.offsetLeft : 0);
-
-        // ul.classList.add("dragging");
-        // ul.classList.remove("glowBox");
-
-        // Browser keeps following the pointer even if it goes outside the element
-        // ul.setPointerCapture(e.pointerId);
     });
 
     ul?.addEventListener("pointermove", (e) => {
@@ -185,14 +161,6 @@ import Live from './Live.astro';
 
         
     });
-
-    // document.querySelector("#time")?.addEventListener("click", () => {
-    //     fetch("/api/time")
-    //         .then(response => response.json())
-    //         .then(data => {
-    //             document.querySelector("#time-result").innerHTML = JSON.stringify(data);
-    //         });
-    // });
 </script>
 
 <style>
@@ -255,6 +223,7 @@ import Live from './Live.astro';
                 user-select: none;
                 transform-origin: center;
                 text-shadow: none;
+                cursor: pointer;
 
                 transition: transform 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
 
@@ -270,11 +239,11 @@ import Live from './Live.astro';
                     background: none;
                     color: inherit;
                     font-size: inherit;
+                    cursor: pointer;
                 }
             }
         }
     }
-
 
     @keyframes navBackgroundGlow {
         0% {

@@ -25,9 +25,7 @@ body {
         height: 0em;
         overflow: hidden;
         transform: translate(-50%, 0);
-        /* background-color: rgba(255, 255, 255, 0.4);
-        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
-        backdrop-filter: blur(2px); */
+        user-select: none;
 
         background-color: rgba(0, 0, 0, 0.8);
         box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 2px 20px rgba(0, 0, 0, 0.5);
@@ -58,21 +56,6 @@ body {
     }
 }
 
-/* body:has(.panelBox.open) .leaflet-top {
-    margin-top: 80dvh;
-    opacity: 0;
-} */
-
-/* body:has(.panelBox.open) .Legend {
-    margin-top: 80dvh;
-    opacity: 0;
-} */
-
-/* body:has(details[open]) .leaflet-top {
-    margin-top: 55dvh !important;
-} */
-
-
 body:has(.panelBox.open) :is(.Legend, .userLocationBtn),
 body:has(#Search:focus-within) :is(.Legend, .userLocationBtn) {
         bottom: 2em !important;
@@ -81,6 +64,8 @@ body:has(#Search:focus-within) :is(.Legend, .userLocationBtn) {
 
 body:has(.Legend > details[open]) .userLocationBtn {
     bottom: 23em !important;
+
+    transition: bottom 0.6s cubic-bezier(0.33, 0.72, 0, 1.18) !important;
 }
 
 
@@ -123,24 +108,14 @@ body:has(.Legend > details[open]) .userLocationBtn {
 /* Desktop sizing */
 
 @media (min-width: 800px) {
-    /* body:has(.panelBox.open) .leaflet-top {
-    margin-top: 10dvh;
-    margin-left: 24vw !important;
-    opacity: 1;
-}
-
-    body:has(#Search:focus) .leaflet-top {
-        margin-top: 10dvh;
-        margin-left: 24vw !important;
-        opacity: 1;
-    } */
-
     .userLocationBtn {
         bottom: 7em !important;
     }
 
     body:has(.Legend > details[open]) .userLocationBtn {
         bottom: 16em !important;
+
+        transition: bottom 0.6s cubic-bezier(0.33, 0.72, 0, 1.18) !important;
     }
 
     body:has(.panelBox.open) :is(.Legend, .userLocationBtn),
@@ -162,22 +137,13 @@ body:has(.Legend > details[open]) .userLocationBtn {
     .Legend {
         right: 1.3em !important;
         bottom: 2em !important;
-        /* top: 6em !important; */
 
         > details {
-            /* bottom: auto !important;
-            top: 0 !important;
-
-            transform-origin: top right; */
-
             transition: width 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), height 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), right 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) !important;
 
             > summary {
                 font-size: 28px !important;
             }
         }
-
-        /* > details[open] {
-        } */
     }
 }

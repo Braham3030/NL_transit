@@ -57,13 +57,8 @@
         }
 
         transitInfos.forEach((transitInfo) => {
-
-            // title.innerHTML = `
-            // Live transit times for Line: ${transitInfo.shortName} 
-            // </br>${transitInfo.longName}`;
             
             const li = document.createElement("li");
-
             
             if (!transitInfo.routeColor || transitInfo.routeColor.includes("undefined") || transitInfo.routeColor.includes("null") || transitInfo.routeColor === "#") {
                 transitInfo.routeColor = "rgba(0, 0, 0, 0.4)";
@@ -116,9 +111,6 @@
         }
         
     })
-
-
-    
 </script>
 
 

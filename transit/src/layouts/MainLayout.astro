@@ -24,15 +24,3 @@ import UserLocation from '../components/UserLocationButton.astro';
 		<MapPanel />
 	</body>
 </html>
-
-<script>
-    // @ts-nocheck
-    async function stopsLoading() {
-        const response = await fetch('/api/Stops');
-        const stops = await response.json();
-
-        console.log(stops);
-    }
-
-    stopsLoading();
-</script>
