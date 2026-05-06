@@ -5,6 +5,11 @@ import LiveTransitList from './LiveTransitList.astro';
 import Header from './Header.astro';
 ---
 
+<div class="backBtnContainer">
+        <button class="backBtn" type="button">
+            <span>Back to search</span>
+        </button>
+    </div>
 <div id="bottomPanel" class="panelBox">
     <Header />
     <!-- <span id="panelHandleContainer">
@@ -253,6 +258,7 @@ import Header from './Header.astro';
         searchElement.addEventListener("keydown", (e) => {
             // Enter key will trigger the search
             if (e.key === "Enter") {
+                // Prevents default "Enter" key behavior. Which is to submit a form
                 e.preventDefault();
 
                 // The search value is trimmed to remove extra spaces 
@@ -269,12 +275,12 @@ import Header from './Header.astro';
 
                     document.dispatchEvent(searchResults);
 
-                    isOpen = false;
-                    panel.classList.add("close");
+                    // isOpen = false;
+                    // panel.classList.add("close");
 
-                    panel.style.height = "";
-                    panel.style.width = "";
-                    panel.style.opacity = "";
+                    // panel.style.height = "";
+                    // panel.style.width = "";
+                    // panel.style.opacity = "";
 
                     searchElement.blur();
                 }
@@ -289,7 +295,7 @@ import Header from './Header.astro';
 
         if (transitLat && transitLon) {
             isOpen = false;
-            panel.classList.remove("close");
+            panel.classList.add("close");
 
             panel.style.height = "";
             panel.style.width = "";
@@ -340,9 +346,57 @@ import Header from './Header.astro';
         })
     };
 
+    // back Button opening panel
+
+    const backBtn = document.querySelector(".backBtn");
+
+    backBtn.addEventListener("click", () => {
+        if (!panel) return;
+
+        isOpen = true;
+        setTimeout(() => {
+            panel.classList.remove("close");
+        }, 200);
+        panel.style.height = "";
+        panel.style.width = "";
+        panel.style.opacity = "";
+        
+        // backBtn.style.right = "-5em"
+
+    })
+
 </script>
 
 <style>
+
+.backBtnContainer {
+            opacity: 1;
+            z-index: 999;
+            position: absolute;
+            bottom: 6%;
+            left: 1.3em;
+            transform: translate(-5%, -50%);
+            border: 2px solid red;
+            border-radius: 18px;
+
+            transition: bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+            > .backBtn {
+                border: 2px solid red;
+                padding: 1em;
+                border-radius: inherit;
+                background-color: rgba(0, 0, 0, 0.8);
+                box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(16px);
+
+                > span {
+                    color: white;
+                    font-size: 1.5em;
+            }
+            }
+
+        }
+
     .panelBox {
         z-index: 11111;
         display: flex;
@@ -355,6 +409,7 @@ import Header from './Header.astro';
         transform: translate(-50%, 150%) scale(0.5);
         width: 100vw;
         height: 100vh;
+        opacity: 1;
 
         background-color: rgba(0, 0, 0, 0.8);
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
@@ -429,9 +484,10 @@ import Header from './Header.astro';
 
     .panelBox.close {
         border-radius: 36px;
-        bottom: 2em;
+        bottom: 0;
         width: 95vw;
-        height: 10vh;
+        height: 0vh;
+        opacity: 0 !important;
 
         background-color: rgba(0, 0, 0, 0.8);
         box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 2px 20px rgba(0, 0, 0, 0.5);
@@ -720,10 +776,12 @@ import Header from './Header.astro';
 
     @keyframes slideInBottom {
         0% {
-            transform: translate(-50%, 100%) scale(0.5);
+            height: 0;
+            transform: translate(-50%, 0%) scale(1);
             opacity: 0;
         }
         100% {
+            height: 0vh;
             transform: translate(-50%, 0) scale(1);
             opacity: 1;
         }

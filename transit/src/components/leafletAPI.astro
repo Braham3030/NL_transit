@@ -40,6 +40,8 @@ import L from 'leaflet';
     // All the routes will be stored within this map
     let routesMap = {};
 
+    let stopsEnabled = false;
+
     // pollingRate for fetching data
     const pollingRate = 8000;
     let pollingTimer;
@@ -615,13 +617,40 @@ import L from 'leaflet';
         // map.addLayer(stopsClusters);
         map.addLayer(liveClusters);
 
+
+        // Filter button for stops 
+
+    document.addEventListener("filter-stops", (e) => {
+        if (!map || !stopsClusters) return;
+
+        stopsEnabled = e.detail.showStops;
+        const currentZoom = map.getZoom();
+
+        if (stopsEnabled) {
+            if (currentZoom < markerDetailsZoom) {
+                map.setZoom(markerDetailsZoom,
+                    {animate: true}
+                );
+            if (!map.hasLayer(stopsClusters)) {
+                map.addLayer(stopsClusters);
+                stopsInView();
+            }
+        }
+        } else {
+            if (map.hasLayer(stopsClusters)) {
+                map.removeLayer(stopsClusters);
+            }
+        }
+    });
+
+
         map.on('moveend', () => {
         
 
         // If the currentZoom is bigger than the makerDetailZoom, then the stops will be shown. Else none will be shown.
         const currentZoom = map.getZoom();
 
-        if (currentZoom >= markerDetailsZoom) {
+        if (currentZoom >= markerDetailsZoom && stopsEnabled) {
             if (!map.hasLayer(stopsClusters)) {
                 map.addLayer(stopsClusters);
                 stopsInView();
@@ -711,7 +740,7 @@ import L from 'leaflet';
                 duration: 1.5
             })
         }
-    })
+    });
     
     // Lines for transit according to stops
 
