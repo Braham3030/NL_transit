@@ -1,0 +1,274 @@
+---
+
+---
+
+<div class="filterContainer">
+	<details class="detailsContainer">
+		<summary>
+			<!-- source: -->
+			<!-- https://www.svgrepo.com/svg/503022/filter -->
+			<svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
+				><path
+					fill-rule="evenodd"
+					clip-rule="evenodd"
+					d="M15 10.5A3.502 3.502 0 0 0 18.355 8H21a1 1 0 1 0 0-2h-2.645a3.502 3.502 0 0 0-6.71 0H3a1 1 0 0 0 0 2h8.645A3.502 3.502 0 0 0 15 10.5zM3 16a1 1 0 1 0 0 2h2.145a3.502 3.502 0 0 0 6.71 0H21a1 1 0 1 0 0-2h-9.145a3.502 3.502 0 0 0-6.71 0H3z"
+					fill="#ffffff"></path></svg
+			>
+		</summary>
+		<label for="mapFilter">
+			<input type="checkbox" id="mapFilter" />
+			<div>
+				<!-- Source: -->
+				<!-- https://www.svgrepo.com/svg/324998/bus-stop -->
+				<svg width="30px" height="30px" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+					<path d="M16 16.01L16.01 15.9989" stroke="var(--stroke-color)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+					<path d="M6 16.01L6.01 15.9989" stroke="var(--stroke-color)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+					<path d="M20 22V15V8M20 8H18L18 2H22V8H20Z" stroke="var(--stroke-color)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+					<path d="M4 20V22H6V20H4Z" fill="var(--stroke-color)" stroke="var(--stroke-color)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+					<path d="M14 20V22H16V20H14Z" fill="var(--stroke-color)" stroke="var(--stroke-color)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+					<path
+						d="M16 20H2.6C2.26863 20 2 19.7314 2 19.4V12.6C2 12.2686 2.26863 12 2.6 12H16"
+						stroke="var(--stroke-color)"
+						stroke-width="1.5"
+						stroke-linecap="round"
+						stroke-linejoin="round"></path>
+					<path d="M14 8H6M14 2H6C3.79086 2 2 3.79086 2 6V8" stroke="var(--stroke-color)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+				</svg>
+			</div>
+			<span>Transit stops</span>
+		</label>
+	</details>
+</div>
+
+<script>
+	// @ts-nocheck
+
+	// Filter bus stops on or off
+
+	const filter = document.getElementById("mapFilter");
+
+	if (filter) {
+		filter.checked = false;
+
+		filter.addEventListener("change", (e) => {
+			const isChecked = e.target.checked;
+
+			// Dispatches a custom event with the filter state
+			const filterChangeEvent = new CustomEvent("filter-stops", {
+				detail: { showStops: isChecked },
+			});
+
+			document.dispatchEvent(filterChangeEvent);
+		});
+	}
+</script>
+
+<style>
+	:root {
+		--stroke-color: #ffffff;
+	}
+	.filterContainer {
+		position: absolute;
+		display: flex;
+		align-items: flex-end;
+		justify-content: flex-end;
+		top: 1.5em;
+		right: 1.3em;
+		transform: translate(-20%, -50%);
+		z-index: 9999;
+		width: auto;
+		height: auto;
+		background-color: transparent;
+		border-radius: 50%;
+		user-select: none;
+
+		transition:
+			transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			right 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			margin-top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+		> details {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex-direction: column;
+			border-radius: 100px;
+			width: 3.5em;
+			height: 3.5em;
+			padding: 0;
+			overflow: hidden;
+
+			color: white;
+			background-color: rgba(0, 0, 0, 0.7);
+			box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+			backdrop-filter: blur(8px);
+			position: absolute;
+			top: 0;
+			right: 0;
+			transform: translate(0, 0);
+			transform-origin: top right;
+
+			transition:
+				width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				height 0.6s cubic-bezier(0.33, 0.72, 0, 1.18),
+				top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				right 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				padding 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				border-radius 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+			animation: ShrinkFilter 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) forwards;
+
+			&::before {
+				content: "";
+				position: absolute;
+				top: 0;
+				left: var(--mouse-x);
+				top: var(--mouse-y);
+				transform: translate(-50%, -50%);
+				width: 100px;
+				height: 100px;
+				border-radius: 50%;
+				background-color: rgba(138, 138, 138, 0.6);
+				filter: blur(80px) brightness(15) contrast(150%) saturate(20%);
+				z-index: -1;
+
+				transition:
+					top 0.2s cubic-bezier(0.33, 0.72, 0, 1.18),
+					left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+			}
+
+			> summary {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 24px;
+				width: 100%;
+				height: 100%;
+				font-weight: bold;
+				cursor: pointer;
+				list-style-type: none;
+				padding-top: 0.2em;
+				padding-bottom: 0.2em;
+				border-radius: 0.5em;
+
+				transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+			}
+
+			> label {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				padding: 1em 2em;
+				margin: 0;
+				border-radius: 8px;
+				background-color: rgba(0, 0, 0, 0.2);
+				box-shadow: 0 2px 20px rgba(255, 255, 255, 0.3);
+				backdrop-filter: blur(8px);
+
+				transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+				> input {
+					appearance: none;
+					margin: 0;
+					padding: 0;
+				}
+
+				> div {
+					margin: 0;
+					padding: 0;
+					color: white;
+					transform: scale(1);
+
+					transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+				}
+
+				> span {
+					font-size: 22px;
+					font-weight: bold;
+					margin-left: 1em;
+				}
+			}
+
+			&:has(input:checked) label {
+				--stroke-color: #000000;
+
+				background-color: rgba(255, 255, 255, 0.7);
+				box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+				backdrop-filter: blur(20px);
+
+				transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+				> div {
+					transform: scale(1.2);
+					color: black;
+
+					transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+				}
+			}
+		}
+
+		> details[open] {
+			width: 12em;
+			height: 10em;
+			bottom: 0;
+			right: 0;
+			padding: 0.8em;
+			border-radius: 16px;
+			transform: translate(0, 0);
+			align-items: flex-start;
+			justify-content: flex-start;
+			background-color: rgba(0, 0, 0, 0.8);
+
+			transition:
+				background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18),
+				height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				right 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				padding 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				border-radius 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+			animation: enLargeFilter 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) forwards;
+
+			> summary {
+				font-size: 36px;
+				justify-content: flex-end;
+				align-items: flex-start;
+
+				transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+			}
+		}
+	}
+
+	@keyframes enLargeFilter {
+		from {
+			width: 3.5em;
+		}
+		to {
+			width: 14em;
+		}
+	}
+
+	@keyframes ShrinkFilter {
+		from {
+			width: 14em;
+		}
+		to {
+			width: 3.5em;
+		}
+	}
+
+	@keyframes iconGrow {
+		0% {
+			transform: scale(1);
+		}
+		50% {
+			transform: scale(1.2);
+		}
+		100% {
+			transform: scale(1);
+		}
+	}
+</style>
