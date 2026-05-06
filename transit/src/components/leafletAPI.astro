@@ -234,10 +234,12 @@ console.log("Leaflet API component loaded");
 	}
 
 	async function stopsInView() {
+		// If the map is not initialized yet, it will return. Which means the stops will not load before the map
 		if (!map) return;
 
 		clearTimeout(fetchTimeout);
 
+		// fetchTimeout will ensure that the API is not called multiple times
 		fetchTimeout = setTimeout(async () => {
 			let bounds;
 
@@ -249,7 +251,6 @@ console.log("Leaflet API component loaded");
 			}
 
 			// With this apiUrl, the backend will filter the stops based on the view on the map
-			// const apiUrl = `/api/Stops?minLat=${minLat}&maxLat=${maxLat}&minLon=${minLon}&maxLon=${maxLon}`;
 			let apiUrl = `/api/Stops`;
 
 			const response = await fetch(apiUrl);

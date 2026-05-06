@@ -5,15 +5,6 @@
 <div class="liveTransitListContainer">
 	<h3 class="liveTransitListTitle"></h3>
 	<ul class="liveTransitList">
-		<!-- <li>Test time 1</li>
-        <li>Test time 2</li>
-        <li>Test time 3</li>
-        <li>Test time 4</li>
-        <li>Test time 5</li>
-        <li>Test time 6</li>
-        <li>Test time 7</li>
-        <li>Test time 8</li>
-        <li>Test time 9</li> -->
 	</ul>
 </div>
 
@@ -71,7 +62,7 @@
             Line: ${transitInfo.shortName}
             </br>${transitInfo.longName}`;
 
-			// Click even listener for the list items
+			// Click eventListener for the list items
 
 			// CustomEvent is a way to send custom events data, when an action happend.
 			// https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent
@@ -97,6 +88,7 @@
 		const title = document.querySelector(".liveTransitListTitle");
 
 		if (searchName && title) {
+            // innerHTML is used to change the content of the title dynamically.
 			title.innerHTML = `Live transit times for Line: <b>${searchName}</b>`;
 		}
 	});
