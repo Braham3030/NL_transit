@@ -187,6 +187,10 @@ Ook het toevoegen van een filter knop voor de weergave van de stops op de kaart 
 
 ### Leaflet gebruik voor installeren van leaflet en aanpassen van kaart eigenschappen
 [leaflet](https://leafletjs.com/download.html)
+[Leaflet markerCluster](https://leafletjs.com/2012/08/20/guest-post-markerclusterer-0-1-released.html)
+[flyToBound](https://leafletjs.com/reference.html#map-flytobounds)
+[LeafletOptions](https://leafletjs.com/reference.html#map-methods-for-getting-map-state)
+[HighAccuracy](https://w3c.github.io/geolocation/#enablehighaccuracy-member)
 
 ### Cubic bezier animatie details
 [Cubic_Bezier_Generator](https://www.cssportal.com/css-cubic-bezier-generator/)
@@ -198,8 +202,28 @@ Ook het toevoegen van een filter knop voor de weergave van de stops op de kaart 
 [txt_to_json](https://convertmcpack.net)
 [csv_to_json](https://csvjson.com)
 
+## Javascript usage
+[parseFloat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat)
+[.push](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push)
+[customEvent](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/CustomEvent)
+
+## CSS usage
+[CSS class finding](https://stackoverflow.com/questions/12606141/how-would-i-customise-the-look-and-feel-of-the-leaflet-popup)
+
 ## AI usage
 [Gemini_static_api_error](https://gemini.google.com/share/1037ffcae5ab)
 
 ## Leaflet styling
 [maptiler](https://www.npmjs.com/package/@maptiler/sdk)
+
+## SVG
+[FilterIcon](https://www.svgrepo.com/svg/503022/filter)
+[BusstopIcon](https://www.svgrepo.com/svg/324998/bus-stop)
+[BusIcon](https://www.untitledui.com/icon/bus)
+[UserLocationSvg](https://www.svgrepo.com/svg/532533/location-arrow-alt)
+
+## Astro
+[Data-line](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/data-*)
+[Datalist](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/datalist)
+[Removal of default arrow](https://www.geeksforgeeks.org/css/how-to-remove-the-default-arrow-icon-from-a-dropdown-list/)
+[astro page load](https://stackoverflow.com/questions/78780819/astro-page-load-event-is-triggered-in-other-page)
