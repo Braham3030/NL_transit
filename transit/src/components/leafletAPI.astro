@@ -1,178 +1,165 @@
 ---
 // @ts-nocheck
-import 'leaflet/dist/leaflet.css';
-console.log('Leaflet API component loaded');
+import "leaflet/dist/leaflet.css";
+console.log("Leaflet API component loaded");
 ---
 
 <div id="map" style="width: 100%; height: 100vh; z-index: 1;">
-    <div class="loading"></div>
+	<div class="loading"></div>
 </div>
 
-
 <script>
-    // @ts-nocheck
-    import { fromRoutingStrategy } from 'astro/app/common';
-import L from 'leaflet';
+	// @ts-nocheck
+	import { fromRoutingStrategy } from "astro/app/common";
+	import L from "leaflet";
 
-    // MarkerCluster plugin for Leaflet
-    // https://leafletjs.com/2012/08/20/guest-post-markerclusterer-0-1-released.html
-    import 'leaflet.markercluster';
-    import 'leaflet.markercluster/dist/MarkerCluster.css';
-    import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-    // map is used to store the leaflet map options and methods. To manipulate the map behaviour. For istance "map.flyTo" is used to fly to a certain location on the map
-    let map;
+	// MarkerCluster plugin for Leaflet
+	// https://leafletjs.com/2012/08/20/guest-post-markerclusterer-0-1-released.html
+	import "leaflet.markercluster";
+	import "leaflet.markercluster/dist/MarkerCluster.css";
+	import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+	// map is used to store the leaflet map options and methods. To manipulate the map behaviour. For istance "map.flyTo" is used to fly to a certain location on the map
+	let map;
 
-    // Stores the transit line
-    let activeSearch = null;
-    // Stores raw data from the api
-    let allLiveVehicles = [];
-    
-    let userLocation = null;
-    let userLocationMarker = null;
+	// Stores the transit line
+	let activeSearch = null;
+	// Stores raw data from the api
+	let allLiveVehicles = [];
 
-    let stopsClusters;
-    let liveClusters;
-    let fetchTimeout;
+	let userLocation = null;
+	let userLocationMarker = null;
 
-    let initialCoords = { lat: 52.370216, lon: 4.895168 }; 
-    // Amsterdam coordinates for fallback when geolocation fails
+	let stopsClusters;
+	let liveClusters;
+	let fetchTimeout;
 
-    // All the routes will be stored within this map
-    let routesMap = {};
+	let initialCoords = { lat: 52.370216, lon: 4.895168 };
+	// Amsterdam coordinates for fallback when geolocation fails
 
-    let stopsEnabled = false;
+	// All the routes will be stored within this map
+	let routesMap = {};
 
-    // pollingRate for fetching data
-    const pollingRate = 8000;
-    let pollingTimer;
-    let zoomInOnRefresh = true;
+	let stopsEnabled = false;
 
-    const markerDetailsZoom = 12;
+	// pollingRate for fetching data
+	const pollingRate = 8000;
+	let pollingTimer;
+	let zoomInOnRefresh = true;
 
-    console.log('Initializing Leaflet map...');
+	const markerDetailsZoom = 12;
 
-    async function transitLiveLocations() {
+	console.log("Initializing Leaflet map...");
 
-            const liveLocationApi = '/api/TransitLocation';
-            
-        try {
-            const responseLive = await fetch(liveLocationApi);
+	async function transitLiveLocations() {
+		const liveLocationApi = "/api/TransitLocation";
 
-            // Fallback for rate limit exceeded.
-            if (responseLive.status === 429) {
-                stopLivePolling();
-                console.error('Rate limit exceeded for transit live locations API. Stopping live updates.');
-                return;
-            }
+		try {
+			const responseLive = await fetch(liveLocationApi);
 
+			// Fallback for rate limit exceeded.
+			if (responseLive.status === 429) {
+				stopLivePolling();
+				console.error("Rate limit exceeded for transit live locations API. Stopping live updates.");
+				return;
+			}
 
-            if (!responseLive.ok) {
-                const errorTextLive = await responseLive.json();
-                console.error('API error:', responseLive.status, errorTextLive);
-                return;
-            }
+			if (!responseLive.ok) {
+				const errorTextLive = await responseLive.json();
+				console.error("API error:", responseLive.status, errorTextLive);
+				return;
+			}
 
-            const dataLive = await responseLive.json();
+			const dataLive = await responseLive.json();
 
-            // Store live vehicle data in the "let"
-            allLiveVehicles = Array.isArray(dataLive) ? dataLive : (dataLive && dataLive.vehicles) || [];
+			// Store live vehicle data in the "let"
+			allLiveVehicles = Array.isArray(dataLive) ? dataLive : (dataLive && dataLive.vehicles) || [];
 
-            renderLiveLocations();
+			renderLiveLocations();
 
-            console.log('Transit live locations data:', dataLive);
-            console.log(`Fetching transit live locations from API: ${liveLocationApi}`);
+			console.log("Transit live locations data:", dataLive);
+			console.log(`Fetching transit live locations from API: ${liveLocationApi}`);
+		} catch (error) {
+			console.error("Error fetching transit live locations:", error);
+		}
+	}
 
+	// This function will fetch the API data in real time based on pollinRate. setTimeout is used to ensure the API fetch happens every "pollingRate" time.
+	async function livePolling() {
+		await transitLiveLocations();
 
-        } catch (error) {
-            console.error('Error fetching transit live locations:', error);
-        }
-    }
+		pollingTimer = setTimeout(livePolling, pollingRate);
+	}
 
+	async function stopLivePolling() {
+		// clearTimeout will stop the pollingTimer to fetch from the API. This can be triggered when rate limit has been reached. Or when the user is not looking it the transit
+		clearTimeout(pollingTimer);
+	}
 
-    // This function will fetch the API data in real time based on pollinRate. setTimeout is used to ensure the API fetch happens every "pollingRate" time.
-    async function livePolling() {
-        await transitLiveLocations();
+	const renderLiveLocations = () => {
+		// clears the map first
+		liveClusters.clearLayers();
 
-        pollingTimer = setTimeout(livePolling, pollingRate);
-    }
+		if (!activeSearch || !allLiveVehicles || !Array.isArray(allLiveVehicles)) return;
 
-    async function stopLivePolling() {
-        // clearTimeout will stop the pollingTimer to fetch from the API. This can be triggered when rate limit has been reached. Or when the user is not looking it the transit
-        clearTimeout(pollingTimer);
-    }
+		const liveMarkersToAdd = [];
+		const routeInfoForZoom = [];
 
-    const renderLiveLocations = () => {
-        // clears the map first
-        liveClusters.clearLayers();
+		allLiveVehicles.forEach((location) => {
+			if (!location) return;
 
-        if (!activeSearch || !allLiveVehicles || !Array.isArray(allLiveVehicles)) return;
-        
-        const liveMarkersToAdd = [];
-        const routeInfoForZoom = [];
+			const routeId = location.routeId;
+			const routeInfo = routesMap[routeId];
 
-        allLiveVehicles.forEach(location => {
-            if (!location) return;
+			if (routeInfo && routeInfo.shortName.toString().toLowerCase() === activeSearch.toLowerCase()) {
+				// If lat and lon are strings, parseFloat will convert them to numbers
+				// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
+				const lat = parseFloat(location.latitude);
+				const lon = parseFloat(location.longitude);
 
-            const routeId = location.routeId;
-            const routeInfo = routesMap[routeId];
+				if (!isNaN(lat) && !isNaN(lon)) {
+					// Calculate distance to user if available. Otherwise set to infinity to ensure all distances gets coverage
+					let distanceToUser = Infinity;
 
-            if (routeInfo && routeInfo.shortName.toString().toLowerCase() === activeSearch.toLowerCase()) {
-                // If lat and lon are strings, parseFloat will convert them to numbers
-                // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/parseFloat
-                const lat = parseFloat(location.latitude);
-                const lon = parseFloat(location.longitude);
+					if (userLocation) {
+						distanceToUser = map.distance(userLocation, L.latLng(lat, lon));
+					}
 
-                if (!isNaN(lat) && !isNaN(lon)) {
+					// formatRoute changes the long name based on the direction of the transit line
+					const formatedLongName = formatRoute(routeInfo.longName, location.directionId);
 
-                    // Calculate distance to user if available. Otherwise set to infinity to ensure all distances gets coverage
-                    let distanceToUser = Infinity;
+					// Stores the given data and pushes this to the routeInfoForZoom array.
+					// .push usage:
+					// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
+					routeInfoForZoom.push({
+						lat: lat,
+						lon: lon,
+						shortName: routeInfo.shortName,
+						longName: formatedLongName,
+						routeColor: routeInfo.routeColor,
+						routeTextColor: routeInfo.routeTextColor,
+						distance: distanceToUser,
+						agencyId: routeInfo.agencyId,
+					});
 
-                    if (userLocation) {
-                        distanceToUser = map.distance(userLocation, L.latLng(lat, lon));
-                    }
-
-                    // formatRoute changes the long name based on the direction of the transit line
-                    const formatedLongName = formatRoute(routeInfo.longName, location.directionId);
-
-                    // Stores the given data and pushes this to the routeInfoForZoom array.
-                    // .push usage:
-                    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/push
-                    routeInfoForZoom.push({
-                        lat: lat,
-                        lon: lon,
-                        shortName: routeInfo.shortName,
-                        longName: formatedLongName,
-                        routeColor: routeInfo.routeColor,
-                        routeTextColor: routeInfo.routeTextColor,
-                        distance: distanceToUser,
-                        agencyId: routeInfo.agencyId
-                    });
-
-                    // Transit Icon:
-                    // https://www.untitledui.com/icon/bus
-                    const transitIcon = L.divIcon({
-                        className: 'transitIcon',
-                        html: `
+					// Transit Icon:
+					// https://www.untitledui.com/icon/bus
+					const transitIcon = L.divIcon({
+						className: "transitIcon",
+						html: `
                         <div class="transitIconBox" style="background-color: ${routeInfo.routeColor};">
                             <svg width="80%" height="80%" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M8.5 19V21.2C8.5 21.48 8.5 21.62 8.4455 21.727C8.39757 21.8211 8.32108 21.8976 8.227 21.9455C8.12004 22 7.98003 22 7.7 22H5.8C5.51997 22 5.37996 22 5.273 21.9455C5.17892 21.8976 5.10243 21.8211 5.0545 21.727C5 21.62 5 21.48 5 21.2V19M19 19V21.2C19 21.48 19 21.62 18.9455 21.727C18.8976 21.8211 18.8211 21.8976 18.727 21.9455C18.62 22 18.48 22 18.2 22H16.3C16.02 22 15.88 22 15.773 21.9455C15.6789 21.8976 15.6024 21.8211 15.5545 21.727C15.5 21.62 15.5 21.48 15.5 21.2V19M3 12H21M3 5.5H21M6.5 15.5H8M16 15.5H17.5M7.8 19H16.2C17.8802 19 18.7202 19 19.362 18.673C19.9265 18.3854 20.3854 17.9265 20.673 17.362C21 16.7202 21 15.8802 21 14.2V6.8C21 5.11984 21 4.27976 20.673 3.63803C20.3854 3.07354 19.9265 2.6146 19.362 2.32698C18.7202 2 17.8802 2 16.2 2H7.8C6.11984 2 5.27976 2 4.63803 2.32698C4.07354 2.6146 3.6146 3.07354 3.32698 3.63803C3 4.27976 3 5.11984 3 6.8V14.2C3 15.8802 3 16.7202 3.32698 17.362C3.6146 17.9265 4.07354 18.3854 4.63803 18.673C5.27976 19 6.11984 19 7.8 19Z" stroke=${routeInfo.routeTextColor} stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </div>
                         `,
-                        iconSize: [30, 30],
-                        iconAnchor: [15, 15]
-                    })
+						iconSize: [30, 30],
+						iconAnchor: [15, 15],
+					});
 
-                    const marker = L.marker([lat, lon], {
-                        // radius: 8,
-                        // fillColor: routeInfo.routeColor,
-                        // color: '#fff',
-                        // weight: 1,
-                        // opacity: 1,
-                        // fillOpacity: 0.9,
-                        icon: transitIcon
-                    });
-                    marker.bindPopup(`
+					const marker = L.marker([lat, lon], {
+						icon: transitIcon,
+					});
+					marker.bindPopup(`
                     <div class="livePopupContainer" style="background-color: ${routeInfo.routeColor}; box-shadow: 0px 0px 20px ${routeInfo.routeColor} !important;">
                         <h3 style="color: ${routeInfo.routeTextColor}">Live location for line ${routeInfo.shortName}</h3>
                         <ul>
@@ -183,167 +170,132 @@ import L from 'leaflet';
                     </div>
                     `);
 
-                    // Click event for the marker to fly to the location
-                    marker.on('click', () => {
-                        map.flyTo([lat, lon], 16, {
-                            animate: true,
-                            duration: 2
-                        })
-                    });
+					// Click event for the marker to fly to the location
+					marker.on("click", () => {
+						map.flyTo([lat, lon], 16, {
+							animate: true,
+							duration: 2,
+						});
+					});
 
-                    liveClusters.addLayer(marker);
-                }
+					liveClusters.addLayer(marker);
+				}
+			}
+		});
 
-        //         const transitLocations = document.querySelectorAll('.transitIconBox');
-        // transitLocations.forEach((location) => {
-        //     location.addEventListener("click", () => {
-        //         map.flyTo([lat, lon], 16, {
-        //             animate: true,
-        //             duration: 2
-        //         })
-        //     })
-        // })
-            }
-        });
+		// sort on distance to user. closest first. a is smaller than b
+		routeInfoForZoom.sort((a, b) => a.distance - b.distance);
 
-        
+		document.dispatchEvent(
+			new CustomEvent("liveLocationUpdate", {
+				detail: {
+					transitInfo: routeInfoForZoom,
+				},
+			}),
+		);
 
-        // sort on distance to user. closest first. a is smaller than b
-        routeInfoForZoom.sort((a, b) => a.distance - b.distance);
+		// If the routeInfoForZoom has the information (which makes the length bigger than 0), then it will zoom to the route
+		if (routeInfoForZoom.length > 0 && zoomInOnRefresh) {
+			// I mad a map to convert the routeInfoForZoom to an array of coordinates, because map.flyTo needs arrays
+			const routeInfoMap = routeInfoForZoom.map((transit) => [transit.lat, transit.lon]);
 
-        document.dispatchEvent(new CustomEvent('liveLocationUpdate', {
-            detail: {
-                transitInfo: routeInfoForZoom
-            }
-        }));
+			try {
+				// https://leafletjs.com/reference.html#map-flytobounds
+				// Used flyToBounds because there are multiple lines to show
+				map.flyToBounds(routeInfoMap, 14, {
+					animate: true,
+					duration: 1.5,
+				});
+				// Prevents zooming when refreshing with new data coords
+				zoomInOnRefresh = false;
+			} catch (e) {
+				console.error("Error flying to route bounds:", e);
+			}
+		}
+	};
 
-        // If the routeInfoForZoom has the information (which makes the length bigger than 0), then it will zoom to the route
-        if (routeInfoForZoom.length > 0 && zoomInOnRefresh) {
-            // I mad a map to convert the routeInfoForZoom to an array of coordinates, because map.flyTo needs arrays
-            const routeInfoMap = routeInfoForZoom.map(transit => [transit.lat, transit.lon]);
-            
-            try {
-            map.flyToBounds(routeInfoMap, 14, {
-                animate: true,
-                duration: 1.5
-            })
-            // Prevents zooming when refreshing with new data coords
-            zoomInOnRefresh = false;
-        } catch (e) {
-            console.error('Error flying to route bounds:', e);
-        }
-        }
+	//   Route heading
 
-        // The zoom will happen when the routeInfoForZoom has coordinates. This means bigger than 0
-        // https://leafletjs.com/reference.html#map-flytobounds
-        // Used flyToBounds because there are multiple lines to show
+	function formatRoute(longName, directionId) {
+		if (!longName) return "Unknown";
 
-        
-        // if (routeInfoForZoom.length > 0 && zoomInOnRefresh) {
-        //     map.flyToBounds(routeInfoForZoom, {
-        //         padding: [50, 50],
-        //         animate: true,
-        //         duration: 1.5,
-        //         maxZoom: 14
-        //     })
+		if (Number(directionId) === 0) {
+			return longName;
+		}
 
-        //     zoomInOnRefresh = false;
-        // }
-  }
+		// If the directionId number is equal to 1, the long name will be reversed.
+		if (Number(directionId) === 1) {
+			if (longName.includes("-")) {
+				return longName.split("-").reverse().join("-");
+			}
+		}
+		// Fallback if there is no "-".
+		return longName;
+	}
 
-//   Route heading 
+	async function stopsInView() {
+		if (!map) return;
 
-    function formatRoute(longName, directionId) {
-        if (!longName) return "Unknown";
+		clearTimeout(fetchTimeout);
 
-        if (Number(directionId) === 0) {
-            return longName;
-        }
+		fetchTimeout = setTimeout(async () => {
+			let bounds;
 
-        // If the directionId number is equal to 1, the long name will be reversed.
-        if (Number(directionId) === 1) {
-            if (longName.includes("-")) {
-                return longName.split("-").reverse().join("-");
-            }
-        }
-        // Fallback if there is no "-".
-        return longName;
-    }
+			try {
+				bounds = map.getBounds();
+			} catch (e) {
+				console.log("Error getting map bounds:", e);
+				return;
+			}
 
-    async function stopsInView() {
-        if (!map) return;
+			// With this apiUrl, the backend will filter the stops based on the view on the map
+			// const apiUrl = `/api/Stops?minLat=${minLat}&maxLat=${maxLat}&minLon=${minLon}&maxLon=${maxLon}`;
+			let apiUrl = `/api/Stops`;
 
-        clearTimeout(fetchTimeout);
+			const response = await fetch(apiUrl);
+			const data = await response.json();
+			console.log(`Fetching stops in view from API: ${apiUrl}`);
 
-        fetchTimeout = setTimeout(async () => {
-        let bounds;
+			try {
+				if (!response.ok) {
+					const errorText = await response.json();
+					console.error("API error:", response.status, errorText);
+					return;
+				}
 
-        try {
-            bounds = map.getBounds();
-        } catch (e) {
-            console.log('Error getting map bounds:', e);
-            return;
-        }
+				console.log(`Received ${data.length} stops in view`);
 
-    // With this apiUrl, the backend will filter the stops based on the view on the map
-    // const apiUrl = `/api/Stops?minLat=${minLat}&maxLat=${maxLat}&minLon=${minLon}&maxLon=${maxLon}`;
-    let apiUrl = `/api/Stops`;
+				stopsClusters.clearLayers();
 
-    // Whenever activeSeach has a value, the apiUrl will be changed to fetch the stops for the lines
-    // if (activeSearch) {
-    //     apiUrl = `/api/Stops?line=${activeSearch}`;
-    // }
+				const stopArray = Array.isArray(data) ? data : (data && data.stops) || []; // Handle both array and single object responses
 
-    const response = await fetch(apiUrl)
-    const data = await response.json();
-    // console.log("StopsData", data);
-    console.log(`Fetching stops in view from API: ${apiUrl}`);
+				if (stopArray.length > 0) {
+					const markersToAdd = [];
+					stopArray.forEach((stop) => {
+						const rawLat = stop.stop_lat || stop.lat || stop.latitude;
+						const rawLon = stop.stop_lon || stop.lon || stop.longitude;
+						const rawName = stop.stop_name || stop.name || "unknown stop";
+						const id = stop.stop_id || stop.id || `NO ID`;
+						const code = stop.stop_code || stop.code || ``;
+						const shortName = stop.shortName;
 
-    try {
-        
-        if (!response.ok) {
-            const errorText = await response.json();
-            console.error('API error:', response.status, errorText);
-            return;
-        }
+						// Force lat/lon to be numbers in case they are strings
+						const lat = parseFloat(rawLat);
+						const lon = parseFloat(rawLon);
 
-        // const data = await response.json();
-        console.log(`Received ${data.length} stops in view`);
+						if (!isNaN(lat) && !isNaN(lon)) {
+							const marker = L.circleMarker([lat, lon], {
+								radius: 10,
+								fillColor: "#3388ff",
+								color: "#fff",
+								weight: 1,
+								opacity: 1,
+								fillOpacity: 0.8,
+							});
 
-        stopsClusters.clearLayers();
-
-        const stopArray = Array.isArray(data) ? data : (data && data.stops) || []; // Handle both array and single object responses
-
-        if (stopArray.length > 0) {
-            const markersToAdd = [];
-        stopArray.forEach(stop => {
-
-            const rawLat = stop.stop_lat || stop.lat || stop.latitude;
-            const rawLon = stop.stop_lon || stop.lon || stop.longitude;
-            const rawName = stop.stop_name || stop.name || "unknown stop";
-            const id = stop.stop_id || stop.id || `NO ID`;
-            const code = stop.stop_code || stop.code || ``;
-            const shortName = stop.shortName;
-
-            // Force lat/lon to be numbers in case they are strings
-            const lat = parseFloat(rawLat);
-            const lon = parseFloat(rawLon);
-
-            if (!isNaN(lat) && !isNaN(lon)) {
-            const marker = L.circleMarker([lat, lon], {
-            // let markers = new L.markerClusterGroup([lat, lon], {
-                radius: 10,
-                fillColor: '#3388ff',
-                color: '#fff',
-                weight: 1,
-                opacity: 1,
-                fillOpacity: 0.8
-            })
-            
-            // map.addLayer(markers);
-            // data-line usage
-            // https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/data-*
-            marker.bindPopup(`
+							// data-line usage
+							// https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Global_attributes/data-*
+							marker.bindPopup(`
             <div class="livePopupContainer" style="background-color: rgba(255, 255, 255, 0.8); box-shadow: 0px 0px 20px white !important;">
                         <h3 style="color: black">Stop: ${rawName}</h3>
                         <ul>
@@ -356,804 +308,715 @@ import L from 'leaflet';
                         </button>
                     </div>
             `);
-            markersToAdd.push(marker);
-        } else {
-            console.error(`Invalid coordinates for stop ID ${id}: lat=${lat}, lon=${lon}`);
-        }
-        });
-        stopsClusters.addLayers(markersToAdd);
-    } else {
-        console.log('Array expected but got:', data);
-    }
-    console.log('StopsData:', stopArray);
-    } catch (error) {
-        console.error('Error fetching stops in view:', error);
-    }
-    }, 500);
-}
+							markersToAdd.push(marker);
+						} else {
+							console.error(`Invalid coordinates for stop ID ${id}: lat=${lat}, lon=${lon}`);
+						}
+					});
+					stopsClusters.addLayers(markersToAdd);
+				} else {
+					console.log("Array expected but got:", data);
+				}
+				console.log("StopsData:", stopArray);
+			} catch (error) {
+				console.error("Error fetching stops in view:", error);
+			}
+		}, 500);
+	}
 
-// Push all transit stops to the filterButton using customEvent
+	async function fetchRoutes() {
+		const RouteApiUrl = `/api/Routes`;
+		const responseRoute = await fetch(RouteApiUrl);
+		const dataRoute = await responseRoute.json();
+		console.log(`Fetching routes from API: ${RouteApiUrl}`);
 
-// routeInfoForZoom.sort((a, b) => a.distance - b.distance);
+		try {
+			if (!responseRoute.ok) {
+				const errorTextRoute = await responseRoute.json();
+				console.error("API error:", responseRoute.status, errorTextRoute);
+				return;
+			}
 
-//         document.dispatchEvent(new CustomEvent('liveLocationUpdate', {
-//             detail: {
-//                 transitInfo: routeInfoForZoom
-//             }
-//         }));
+			const routeArray = Array.isArray(dataRoute) ? dataRoute : (dataRoute && dataRoute.routes) || [];
 
+			if (routeArray.length > 0) {
+				routeArray.forEach((route) => {
+					routesMap[route.route_id] = {
+						shortName: route.route_short_name,
+						longName: route.route_long_name,
+						routeId: route.route_id,
+						routeColor: route.route_color ? "#" + route.route_color : "#000000",
+						routeTextColor: route.route_text_color ? "#" + route.route_text_color : "#ffffff",
+						agencyId: route.agency_id || "Unknown agency",
+					};
+				});
+			}
+			console.log("Routes data:", routeArray);
+		} catch (error) {
+			console.error("Error fetching routes:", error);
+		}
+	}
 
+	function setupMap() {
+		if (map) {
+			map.off();
+			map.remove();
+		}
 
-    async function fetchRoutes() {
-        const RouteApiUrl = `/api/Routes`;
-        const responseRoute = await fetch(RouteApiUrl);
-        const dataRoute = await responseRoute.json();
-        console.log(`Fetching routes from API: ${RouteApiUrl}`);
+		const mapElement = document.getElementById("map");
 
-        try {
-            
-            if (!responseRoute.ok) {
-                const errorTextRoute = await responseRoute.json();
-                console.error('API error:', responseRoute.status, errorTextRoute);
-                return;
-            }
+		if (!mapElement) {
+			console.error("Map element not found");
+			return;
+		}
 
-            const routeArray = Array.isArray(dataRoute) ? dataRoute : (dataRoute && dataRoute.routes) || [];
+		// Use of Leaflet map options to further customize the map experience:
+		// https://leafletjs.com/reference.html#map-methods-for-getting-map-state
 
-            if (routeArray.length > 0) {
-                
-                routeArray.forEach(route => {
-                    routesMap[route.route_id] = {
-                    shortName: route.route_short_name,
-                    longName: route.route_long_name,
-                    routeId: route.route_id,
-                    routeColor: route.route_color ? '#' + route.route_color : '#000000',
-                    routeTextColor: route.route_text_color ? '#' + route.route_text_color : '#ffffff',
-                    agencyId: route.agency_id || 'Unknown agency'
-            }});
-            };
-            console.log('Routes data:', routeArray);
+		// This gives the map options to prefer on canvas
+		map = L.map(mapElement, {
+			preferCanvas: true,
+			zoomControl: true,
+			fadeAnimation: true,
+			zoomAnimation: true,
+			markerZoomAnimation: true,
+		});
 
-        } catch (error) {
-            console.error('Error fetching routes:', error);
-        };
-    }
+		L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+			attribution: "&copy; OpenStreetMap",
+			minZoom: 7.5,
+			maxZoom: 19,
+		}).addTo(map);
 
-    // fetch (apiUrl)
-    //     .then(response => {
-    //         if (!response.ok) {
-    //             throw new Error('Network response was not ok');
-    //         }
-    //         return response.json();
-    //     })
-    //     .then(data => {
-    //         console.log(`Received ${data.length} stops in view`);
+		map.setView([52.2, 5.5], 7.5);
 
-    //         markerLayers.clearLayers();
+		let userCircle;
 
-    //         data.forEach(stop => {
-    //             const marker = L.circleMarker([stop.lat, stop.lon], {
-    //                 radius: 5,
-    //                 fillColor: '#3388ff',
-    //                 color: '#fff',
-    //                 weight: 1,
-    //                 opacity: 1,
-    //                 fillOpacity: 0.8,
-    //                 renderer: myRenderer
-    //             })
-    //             .addTo(markerLayers);
-    //             marker.bindPopup(`<b>${stop.name}</b><br>Stop ID: ${stop.id}`);
-    //         });
-    //     })
-    //     .catch(error => {
-    //         console.error('Error fetching stops in view:', error);
-    //     });
+		map.on("locationfound", function (e) {
+			console.log("Location FOUND... Accuracy:", Math.round(e.accuracy), "meters");
 
-    function setupMap() {
+			// Here I store the user location the let
+			userLocation = e.latlng;
 
-        if (map) {
-            map.off();
-            map.remove();
-        }
+			// If accuracy is above 100 meters, the signal will be considered weak. Else it will be stron
+			const weakSignal = e.accuracy > 100;
+			// Ternary operator to set the signal class based on the accuracy of the location
+			const signalClass = weakSignal ? "weak" : "strong";
 
-        const mapElement = document.getElementById('map');
+			if (signalClass === "weak") {
+				// map is the distance between the user location and the accuracy radius. If the map gets bigger than 50, its considered strong
+				if (map >= 50) {
+					signalClass === "strong";
+				} else {
+					signalClass === "weak";
+				}
+			}
 
-        if (!mapElement) {
-            console.error('Map element not found');
-            return;
-        }
+			console.log("Signal strength:", signalClass);
 
-        // This gives the map options to prefer on canvas
-        map = L.map(mapElement, {
-            preferCanvas: true,
-            zoomControl: true,
-            fadeAnimation: true,
-            zoomAnimation: true,
-            markerZoomAnimation: true
-        })
-        // .setView([initialCoords.lat, initialCoords.lon], 10)
-        // .locate({setView: true, maxZoom: 16});
-
-        // myRenderer = L.canvas({ padding: 0.5 });
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap',
-            minZoom: 7.5, 
-            maxZoom: 19,
-        }).addTo(map);
-
-        map.setView([52.2, 5.5], 7.5);
-
-        // Use of Leaflet map options to further customize the map experience:
-        // https://leafletjs.com/reference.html#map-methods-for-getting-map-state
-
-        // flyTo Animation and location fetch on delay
-
-        // let userLocationMarker;
-        let userCircle;
-
-        map.on('locationfound', function(e) {
-            console.log('Location FOUND... Accuracy:', Math.round(e.accuracy), 'meters');
-
-            // Here I store the user location the let
-            userLocation = e.latlng;
-            // userLocationMarker = L.marker(e.latlng).addTo(map)
-            // .bindPopup(`
-            // You are here!`)
-
-            // If accuracy is above 100 meters, the signal will be considered weak. Else it will be stron
-            const weakSignal = e.accuracy > 100;
-            // Ternary operator to set the signal class based on the accuracy of the location
-            const signalClass = weakSignal ? 'weak' : 'strong';
-
-            if (signalClass === 'weak') {
-                // map is the distance between the user location and the accuracy radius. If the map gets bigger than 50, its considered strong
-                if (map >= 50) {
-                    signalClass === 'strong';
-                } else {
-                    signalClass === 'weak';
-                }
-            } 
-
-            console.log('Signal strength:', signalClass);
-
-            // L.divIcon is used to create a custom div.
-            const userIcon = L.divIcon({
-                className: 'userLocation',
-                html: `
+			// L.divIcon is used to create a custom div.
+			const userIcon = L.divIcon({
+				className: "userLocation",
+				html: `
                 <div class="userLocation ${signalClass}">
                     <div class="userPulse"></div>
                     <div class="userCircle"></div>
                 </div>
                 `,
-                iconSize: [80, 80],
-                // iconAnchor sets the positin of the icon within its container. Now its centered
-                iconAnchor: [40, 40]
-            })
+				iconSize: [80, 80],
+				// iconAnchor sets the positin of the icon within its container. Now its centered
+				iconAnchor: [40, 40],
+			});
 
-            // const currentZoom = map.getZoom();
-            // if (currentZoom >= 15 && signalClass === 'weak') {
-            //     className = 'userLocation weak';
-            // }
+			// Whenever the location is found, it checks if the userLocationMarker already exists. if it does, it will update positioning
+			if (userLocationMarker) {
+				// Latlng is a leaflet method to set the new position of the marker
+				userLocationMarker.setLatLng(e.latlng);
 
-            // Whenever the location is found, it checks if the userLocationMarker already exists. if it does, it will update positioning
-            if (userLocationMarker) {
-                // Latlng is a leaflet method to set the new position of the marker
-                userLocationMarker.setLatLng(e.latlng);
+				userLocationMarker.setIcon(userIcon);
+			} else {
+				// Else it will create the marker for the first time
+				userLocationMarker = L.marker(e.latlng, { icon: userIcon }).addTo(map);
 
-                userLocationMarker.setIcon(userIcon);
-            } else {
-                // Else it will create the marker for the first time
-                userLocationMarker = L.marker(e.latlng, { icon: userIcon }).addTo(map);
+				// Only fly to user at refresh
+				map.flyTo(e.latlng, 16, {
+					animate: true,
+					// Animation duration in seconds
+					duration: 2,
+				});
+			}
 
-                // Only fly to user at refresh
-            map.flyTo(e.latlng, 16, {
-                animate: true,
-                // Animation duration in seconds
-                duration: 2
-            });
-            }
-            
-            const userLocationElement = document.querySelector('.userLocation');
-            userLocationElement.addEventListener("click", () => {
-                map.flyTo(userLocation, 16, {
-                    animate: true,
-                    duration: 2
-                });
-            });
+			const userLocationElement = document.querySelector(".userLocation");
+			userLocationElement.addEventListener("click", () => {
+				map.flyTo(userLocation, 16, {
+					animate: true,
+					duration: 2,
+				});
+			});
 
-            const userLocationBtn = document.querySelector('.userLocationBtn');
-            userLocationBtn.addEventListener("click", () => {
-                map.flyTo(userLocation, 16, {
-                    animate: true,
-                    duration: 2
-                });
+			const userLocationBtn = document.querySelector(".userLocationBtn");
+			userLocationBtn.addEventListener("click", () => {
+				map.flyTo(userLocation, 16, {
+					animate: true,
+					duration: 2,
+				});
 
-                setTimeout(() => {
-                    userLocationBtn.classList.add('clicked');
-                }, 500);
-                setTimeout(() => {
-                    userLocationBtn.classList.remove('clicked');
-                }, 8000);
-            })
+				setTimeout(() => {
+					userLocationBtn.classList.add("clicked");
+				}, 500);
+				setTimeout(() => {
+					userLocationBtn.classList.remove("clicked");
+				}, 8000);
+			});
+		});
 
-           
-        });
+		map.on("locationerror", function (e) {
+			console.error("Location error:", e.message);
 
-        map.on('locationerror', function(e) {
-            console.error('Location error:', e.message);
+			map.flyTo([initialCoords.lat, initialCoords.lon], 10, {
+				animate: true,
+				// Animation duration in seconds
+				duration: 2,
+			});
+		});
 
-            map.flyTo([initialCoords.lat, initialCoords.lon], 10, {
-                animate: true,
-                // Animation duration in seconds
-                duration: 2
-            })
-        })
+		setTimeout(() => {
+			if (map) {
+				map.locate({
+					// Disables automatic view resetting to default
+					setView: false,
+					// Use of high accuracy for better location results. The geolocation fetch happens on a general level, with the high accuracy option, the location will be more accurate
+					// https://w3c.github.io/geolocation/#enablehighaccuracy-member
+					enableHighAccuracy: true,
+					// watch keeps updating the location in real time
+					watch: true,
+				});
+			}
+		}, 1500);
 
-        setTimeout(() => {
-            if (map) {
-                map.locate({
-                    // Disables automatic view resetting to default
-                    setView: false,
-                    // Use of high accuracy for better location results. The geolocation fetch happens on a general level, with the high accuracy option, the location will be more accurate
-                    // https://w3c.github.io/geolocation/#enablehighaccuracy-member
-                    enableHighAccuracy: true,
-                    // watch keeps updating the location in real time
-                    watch: true
-                })
-            // map.setView([initialCoords.lat, initialCoords.lon], 10);
-            // map.locate({setView: true, maxZoom: 16});
-            }
-        }, 1500);
+		// markerClusters options:
+		// https://github.com/Leaflet/Leaflet.markercluster/blob/master/src/MarkerClusterGroup.js
+		stopsClusters = L.markerClusterGroup({
+			chunkedLoading: true,
+		});
 
-        // markerClusters options:
-        // https://github.com/Leaflet/Leaflet.markercluster/blob/master/src/MarkerClusterGroup.js
-        stopsClusters = L.markerClusterGroup({
-            chunkedLoading: true,
-        });
+		liveClusters = L.layerGroup();
+		map.addLayer(liveClusters);
 
-        liveClusters = L.layerGroup();
+		// Filter button for stops
 
-        // map.addLayer(stopsClusters);
-        map.addLayer(liveClusters);
+		document.addEventListener("filter-stops", (e) => {
+			if (!map || !stopsClusters) return;
 
+			stopsEnabled = e.detail.showStops;
+			const currentZoom = map.getZoom();
 
-        // Filter button for stops 
+			if (stopsEnabled) {
+				if (currentZoom < markerDetailsZoom) {
+					map.setZoom(markerDetailsZoom, { animate: true });
+					if (!map.hasLayer(stopsClusters)) {
+						map.addLayer(stopsClusters);
+						stopsInView();
+					}
+				}
+			} else {
+				if (map.hasLayer(stopsClusters)) {
+					map.removeLayer(stopsClusters);
+				}
+			}
+		});
 
-    document.addEventListener("filter-stops", (e) => {
-        if (!map || !stopsClusters) return;
+		map.on("moveend", () => {
+			// If the currentZoom is bigger than the makerDetailZoom, then the stops will be shown. Else none will be shown.
+			const currentZoom = map.getZoom();
 
-        stopsEnabled = e.detail.showStops;
-        const currentZoom = map.getZoom();
+			if (currentZoom >= markerDetailsZoom && stopsEnabled) {
+				if (!map.hasLayer(stopsClusters)) {
+					map.addLayer(stopsClusters);
+					stopsInView();
+				}
+			} else {
+				// If the map already has the stopClusters layer, it will be removed to clear the map. This will enhance UX, because the user will not see many stops on screen when zoomed out.
+				if (map.hasLayer(stopsClusters)) {
+					map.removeLayer(stopsClusters);
+				}
+			}
+		});
 
-        if (stopsEnabled) {
-            if (currentZoom < markerDetailsZoom) {
-                map.setZoom(markerDetailsZoom,
-                    {animate: true}
-                );
-            if (!map.hasLayer(stopsClusters)) {
-                map.addLayer(stopsClusters);
-                stopsInView();
-            }
-        }
-        } else {
-            if (map.hasLayer(stopsClusters)) {
-                map.removeLayer(stopsClusters);
-            }
-        }
-    });
+		// Usage of customEven to trigger a search for a line or stop.
+		document.addEventListener("search-line", async (e) => {
+			const searchValue = e.detail.searchName || e.detail.shortName;
 
+			if (!searchValue) return;
 
-        map.on('moveend', () => {
-        
+			activeSearch = searchValue.toString();
+			// zoomInOnRefresh is used to ensure that the map will zoom to the line
+			zoomInOnRefresh = true;
+			console.log("Searching for line or stop:", activeSearch);
 
-        // If the currentZoom is bigger than the makerDetailZoom, then the stops will be shown. Else none will be shown.
-        const currentZoom = map.getZoom();
+			try {
+				const response = await fetch(`/api/Stops`);
+				const stopsData = await response.json();
+				const stopArray = Array.isArray(stopsData) ? stopsData : (stopsData && stopsData.stops) || [];
 
-        if (currentZoom >= markerDetailsZoom && stopsEnabled) {
-            if (!map.hasLayer(stopsClusters)) {
-                map.addLayer(stopsClusters);
-                stopsInView();
-            }
-        } else {
-            // If the map already has the stopClusters layer, it will be removed to clear the map. This will enhance UX, because the user will not see many stops on screen when zoomed out.
-            if (map.hasLayer(stopsClusters)) {
-                map.removeLayer(stopsClusters);
-            }
-        }
-        });
+				const foundStop = stopArray.find((stop) => {
+					const stopName = stop.stop_name || stop.name || "";
+					return stopName.toLowerCase().includes(activeSearch.toLowerCase());
+				});
 
-        // Usage of customEven to trigger a search for a line or stop.
-        document.addEventListener('search-line', async (e) => {
-            const searchValue = e.detail.searchName || e.detail.shortName;
+				if (foundStop) {
+					// If the stops are found, locate the lat and lon. parseFloat is used to force find the lat and lon
+					const lat = parseFloat(foundStop.stop_lat || foundStop.lat);
+					const lon = parseFloat(foundStop.stop_lon || foundStop.lon);
 
-            if (!searchValue) return;
+					// If the lat and lon are found, fly to the location of the stop or line
+					if (!isNaN(lat) && !isNaN(lon)) {
+						map.flyTo([lat, lon], 16, {
+							animate: true,
+							duration: 1.5,
+						});
+					}
+				}
+			} catch (error) {
+				console.error("Error fetching stops for search:", error);
+			}
 
-            activeSearch = searchValue.toString();
-            // zoomInOnRefresh is used to ensure that the map will zoom to the line
-            zoomInOnRefresh = true;
-            console.log('Searching for line or stop:', activeSearch);
-            // renderLiveLocations();
-            // transitLiveLocations();
+			stopLivePolling();
+			livePolling();
+		});
 
-            try {
-                const response = await fetch(`/api/Stops`);
-                const stopsData = await response.json();
-                const stopArray = Array.isArray(stopsData) ? stopsData : (stopsData && stopsData.stops) || [];
+		setTimeout(() => {
+			map.invalidateSize();
+			// Get the functions and call them after map is loaded
+			stopsInView();
+			// transitLiveLocations();
+		}, 1000);
 
-                const foundStop = stopArray.find(stop => {
-                    const stopName = stop.stop_name || stop.name || '';
-                    return stopName.toLowerCase().includes(activeSearch.toLowerCase());
-                });
+		setTimeout(() => {
+			map.invalidateSize();
+			// Delay the fetch to the live locations. To ensure map loading before fetching
+			fetchRoutes();
+		}, 3500);
+	}
 
-                    if (foundStop) {
-                        // If the stops are found, locate the lat and lon. parseFloat is used to force find the lat and lon
-                        const lat = parseFloat(foundStop.stop_lat || foundStop.lat);
-                        const lon = parseFloat(foundStop.stop_lon || foundStop.lon);
+	// DOMContentLoaded is used here to make sure the setupMap works after the DOM has been loaded.
+	// astro:page-load makes sure the astro page is loaded before the setupMap is set
+	document.addEventListener("DOMContentLoaded", setupMap);
+	document.addEventListener("astro:page-load", setupMap);
 
-                        // If the lat and lon are found, fly to the location of the stop or line
-                        if (!isNaN(lat) && !isNaN(lon)) {
-                            map.flyTo([lat, lon], 16, {
-                                animate: true,
-                                duration: 1.5
-                            });
-                        }
-                    }
-            } catch (error) {
-                console.error('Error fetching stops for search:', error);
-            }
+	// When the line has been checked in the panel, fly to the location of the line.
+	document.addEventListener("line-check", (e) => {
+		const transitLat = e.detail.lat;
+		const transitLon = e.detail.lon;
 
-            stopLivePolling();
-            livePolling();
-            
-        })
-
-        setTimeout(() => {
-            map.invalidateSize();
-            // Get the functions and call them after map is loaded
-            stopsInView();
-            // transitLiveLocations();
-            
-        }, 1000);
-
-        setTimeout(() => {
-            map.invalidateSize();
-            // transitLiveLocations();
-            // Delay the fetch to the live locations. To ensure map loading before fetching
-            fetchRoutes();
-        }, 3500);
-    }
-
-    document.addEventListener('DOMContentLoaded', setupMap);
-    document.addEventListener('astro:page-load', setupMap);
-
-
-
-    // When the line has been checked in the panel, fly to the location of the line.
-    document.addEventListener("line-check", (e) => {
-        const transitLat = e.detail.lat;
-        const transitLon = e.detail.lon;
-
-        if (transitLat && transitLon) {
-            map.flyTo([transitLat, transitLon], 16, {
-                animate: true,
-                duration: 1.5
-            })
-        }
-    });
-    
-    // Lines for transit according to stops
-
-    // document.addEventListener("click", (e) => {
-    //     if (e.target && e.target.classList.contains("popupLine")) {
-    //         const lineToSearch = e.target.getAttribute("data-line");
-
-    //         console.log('Line clicked:', lineToSearch);
-
-    //         // Searches lines in "search-line" custom event, because this already obtains the data
-    //         document.dispatchEvent(new CustomEvent("search-line", {
-    //             detail: {
-    //                 searchName: lineToSearch
-    //             }
-    //         }));
-
-    //         // Closes the popup after line has been clicked
-    //         if (map) map.closePopup();
-    //     };
-    // });
-    
+		if (transitLat && transitLon) {
+			map.flyTo([transitLat, transitLon], 16, {
+				animate: true,
+				duration: 1.5,
+			});
+		}
+	});
 </script>
-
 
 <!-- is:global is used to also change styling in other files. For instance in leaflet -->
 <style is:global>
-    .leaflet-top {
-        margin-top: 68vh !important;
-        margin-left: 83vw !important;
-        transform: scale(1.5);
+	.leaflet-top {
+		margin-top: 68vh !important;
+		margin-left: 83vw !important;
+		transform: scale(1.5);
 
-        transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
-    }
+		transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+	}
 
-    .leaflet-bar {
-        border: none !important;
-        background-color: rgba(255, 255, 255, 0.2) !important;
-        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3) !important;
-        border-radius: 12px !important;
-        overflow: hidden !important;
-        transform: translateX(100px) scale(0);
+	.leaflet-bar {
+		border: none !important;
+		background-color: rgba(255, 255, 255, 0.2) !important;
+		box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3) !important;
+		border-radius: 12px !important;
+		overflow: hidden !important;
+		transform: translateX(100px) scale(0);
 
-        animation: slideOutZoom 0.5s cubic-bezier(0.33, 0.72, 0, 1.18) forwards 0.8s;
-    }
+		animation: slideOutZoom 0.5s cubic-bezier(0.33, 0.72, 0, 1.18) forwards 0.8s;
+	}
 
+	/* MARK:This might need to be removed!!!!!!!! */
+	.leaflet-control-zoom a {
+		display: none !important;
+		align-items: center !important;
+		justify-content: center !important;
+		width: 30px !important;
+		height: 30px !important;
+		line-height: 30px !important;
+		font-size: 24px !important;
+		background-color: rgba(0, 0, 0, 0.2) !important;
+		backdrop-filter: blur(0.5px) !important;
+		color: black !important;
 
-    /* MARK:This might need to be removed!!!!!!!! */
-    .leaflet-control-zoom a {
-        display: none !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 30px !important;
-        height: 30px !important;
-        line-height: 30px !important;
-        font-size: 24px !important;
-        background-color: rgba(0, 0, 0, 0.2) !important;
-        backdrop-filter: blur(0.5px) !important;
-        color: black !important;
+		transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
 
-        transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+		&:active {
+			background-color: rgba(0, 0, 0, 0.6) !important;
+			transform: scale(0.85) !important;
+		}
 
-        &:active {
-            background-color: rgba(0, 0, 0, 0.6) !important;
-            transform: scale(0.85) !important;
-        }
+		> span {
+			display: flex !important;
+			align-items: center !important;
+			justify-content: center !important;
+			font-size: 24px !important;
+			color: black !important;
+			font-weight: 800 !important;
+			padding: 0 !important;
+			height: 25px !important;
+		}
+	}
 
-        > span {
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            font-size: 24px !important;
-            color: black !important;
-            font-weight: 800 !important;
-            padding: 0 !important;
-            height: 25px !important;
-        }
-    }
+	.leaflet-control-zoom-in {
+		border-bottom: 0.1px solid rgba(0, 0, 0, 0.3) !important;
+	}
 
-    .leaflet-control-zoom-in {
-        border-bottom: 0.1px solid rgba(0, 0, 0, 0.3) !important;
-    }
+	.leaflet-control-zoom-out {
+		border-top: 0.1px solid rgba(0, 0, 0, 0.3) !important;
+	}
 
-    .leaflet-control-zoom-out {
-        border-top: 0.1px solid rgba(0, 0, 0, 0.3) !important;
-    }
+	/* https://stackoverflow.com/questions/12606141/how-would-i-customise-the-look-and-feel-of-the-leaflet-popup */
+	.leaflet-popup-content-wrapper {
+		background-color: transparent !important;
+		box-shadow: none !important;
+		padding: 0 !important;
+		margin: 0 !important;
+		border-radius: 18px !important;
 
-    /* https://stackoverflow.com/questions/12606141/how-would-i-customise-the-look-and-feel-of-the-leaflet-popup */
-    .leaflet-popup-content-wrapper {
-        background-color: transparent !important;
-        box-shadow: none !important;
-        /* width: fit-content !important;
-        height: auto !important; */
-        padding: 0 !important;
-        margin: 0 !important;
-        border-radius: 18px !important;
-        /* width: 0;
-        height: 0; */
+		animation: slideOutPopup 0.5s cubic-bezier(0.33, 0.72, 0, 1.18) forwards;
+	}
 
-        animation: slideOutPopup 0.5s cubic-bezier(0.33, 0.72, 0, 1.18) forwards;
-    }
+	.leaflet-popup-content-wrapper .leaflet-popup-content {
+		background-color: transparent !important;
+	}
+	.leaflet-popup-tip-container {
+		display: none !important;
+	}
 
-    .leaflet-popup-content-wrapper .leaflet-popup-content {
-        background-color: transparent !important;
-    }
-    .leaflet-popup-tip-container {
-        display: none !important;
-    }
+	.leaflet-popup-close-button {
+		width: 30px !important;
+		height: 30px !important;
+		transform: translate(-30px, 25px) !important;
+		opacity: 0;
+		z-index: -1;
 
-    .leaflet-popup-close-button {
-        width: 30px !important;
-        height: 30px !important;
-        transform: translate(-30px, 25px) !important;
-        opacity: 0;
-        z-index: -1;
+		border: 2px solid rgb(255, 255, 255) !important;
+		border-radius: 50% !important;
+		box-shadow: 0 0px 20px rgba(255, 255, 255, 0.8) !important;
 
-        border: 2px solid rgb(255, 255, 255) !important;
-        border-radius: 50% !important;
-        box-shadow: 0 0px 20px rgba(255, 255, 255, 0.8) !important;
-        
-        animation: slideOutBanner 0.5s cubic-bezier(0.33, 0.72, 0, 1.18) forwards 0.8s;
+		animation: slideOutBanner 0.5s cubic-bezier(0.33, 0.72, 0, 1.18) forwards 0.8s;
 
-        > span {
-            font-size: 24px !important;
-            color: white !important;
-            font-weight: 800 !important;
-            width: 100% !important;
-            height: 100% !important;
-        }
-    }
+		> span {
+			font-size: 24px !important;
+			color: white !important;
+			font-weight: 800 !important;
+			width: 100% !important;
+			height: 100% !important;
+		}
+	}
 
-    .leaflet-popup-content .livePopupContainer {
-        width: 100% !important;
-        padding: 1em !important;
-        border-radius: 18px !important;
-        /* box-shadow: 4px 8px 10px rgba(0, 0, 0, 0.9) !important; */
+	.leaflet-popup-content .livePopupContainer {
+		width: 100% !important;
+		padding: 1em !important;
+		border-radius: 18px !important;
+		/* box-shadow: 4px 8px 10px rgba(0, 0, 0, 0.9) !important; */
 
-        > h3 {
-            font-size: 24px !important;
-            margin: 0 auto !important;
-            margin-bottom: 1em !important;
-            padding-inline: 0.5em !important;
-        }
-        > ul {
-            list-style-type: none !important;
-            padding: 0 !important;
-            margin: 0 !important;
+		> h3 {
+			font-size: 24px !important;
+			margin: 0 auto !important;
+			margin-bottom: 1em !important;
+			padding-inline: 0.5em !important;
+		}
+		> ul {
+			list-style-type: none !important;
+			padding: 0 !important;
+			margin: 0 !important;
 
-        > li {
-            font-size: 18px !important;
-            margin-bottom: 4px !important;
-            padding-inline: 0.5em !important;
-        }
-    }
-}
+			> li {
+				font-size: 18px !important;
+				margin-bottom: 4px !important;
+				padding-inline: 0.5em !important;
+			}
+		}
+	}
 
-    .leaflet-container .leaflet-control-attribution {
-        display: none !important;
-    }
+	.leaflet-container .leaflet-control-attribution {
+		display: none !important;
+	}
 
+	@keyframes slideOutZoom {
+		0% {
+			opacity: 0;
+			transform: translateY(100px) scale(0);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0) scale(1);
+		}
+	}
 
-    @keyframes slideOutZoom {
-        0% {
-            opacity: 0;
-            transform: translateY(100px) scale(0);
-        }
-        100% {
-            opacity: 1;
-            transform: translateY(0) scale(1);
-        }
-    }
+	@keyframes slideOutPopup {
+		0% {
+			width: 0 !important;
+			height: 0 !important;
+			opacity: 0;
+			transform: translateY(20px) scaleX(0);
+		}
+		100% {
+			width: fit-content !important;
+			height: auto !important;
+			opacity: 1;
+			transform: translateY(0) scaleX(1);
+		}
+	}
 
+	@keyframes slideOutBanner {
+		0% {
+			width: 30px !important;
+			height: 20px !important;
+			opacity: 0;
+			transform: translate(-100px, 25px) !important;
+		}
+		100% {
+			width: 30px !important;
+			height: 30px !important;
+			z-index: 9999;
+			opacity: 1;
+			transform: translate(-30px, 25px) !important;
+		}
+	}
 
+	/* Desktop size */
 
-    @keyframes slideOutPopup {
-        0% {
-            width: 0 !important;
-            height: 0 !important;
-            opacity: 0;
-            transform: translateY(20px) scaleX(0);
-        }
-        100% {
-            width: fit-content !important;
-            height: auto !important;
-            opacity: 1;
-            transform: translateY(0) scaleX(1);
-        }
-    }
+	@media (min-width: 1200px) {
+		.leaflet-top {
+			margin-top: 90vh !important;
+			margin-left: 22vw !important;
+		}
+	}
 
-    @keyframes slideOutBanner {
-        0% {
-            width: 30px !important;
-            height: 20px !important;
-            opacity: 0;
-            transform: translate(-100px, 25px) !important;
-        }
-        100% {
-            width: 30px !important;
-            height: 30px !important;
-            z-index: 9999;
-            opacity: 1;
-            transform: translate(-30px, 25px) !important;
-        }
-    }
+	.userLocation.strong {
+		width: 80px;
+		height: 80px;
+		background: transparent;
+		border: none;
+		position: relative;
 
-    /* Desktop size */
+		> .userPulse {
+			width: 30%;
+			height: 30%;
+			border-radius: 50%;
+			background-color: rgba(48, 197, 51, 0.8);
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			animation: pulse 2s infinite;
+		}
 
-    @media (min-width: 1200px) {
-        .leaflet-top {
-            margin-top: 90vh !important;
-            margin-left: 22vw !important;
-        }
-    }
+		> .userCircle {
+			width: 30%;
+			height: 30%;
+			border-radius: 50%;
+			background-color: rgb(49, 197, 51);
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+	}
 
-    .userLocation.strong {
-        width: 80px;
-        height: 80px;
-        background: transparent;
-        border: none;
-        position: relative;
+	.userLocation.weak {
+		width: 80px;
+		height: 80px;
+		background: transparent;
+		position: relative;
 
-        /* > .userHeading {
-            width: 10px;
-            height: 10px;
-            border-bottom: 15px solid rgba(0, 242, 255, 0.8);
-        } */
+		> .userPulse {
+			width: 80%;
+			height: 80%;
+			border-radius: 50%;
+			background-color: rgba(48, 197, 51, 0.8);
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+			animation: pulseIn 2s infinite;
+		}
 
-        > .userPulse {
-            width: 30%;
-            height: 30%;
-            border-radius: 50%;
-            background-color: rgba(48, 197, 51, 0.8);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation: pulse 2s infinite;
-        }
+		> .userCircle {
+			width: 80%;
+			height: 80%;
+			border-radius: 50%;
+			background-color: rgba(49, 197, 51, 0.1);
+			border: 4px solid rgba(48, 197, 51, 0.8);
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			transform: translate(-50%, -50%);
+		}
+	}
 
-        > .userCircle {
-            width: 30%;
-            height: 30%;
-            border-radius: 50%;
-            background-color: rgb(49, 197, 51);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-}
+	@keyframes pulse {
+		0% {
+			transform: translate(-50%, -50%) scale(1);
+			opacity: 0.8;
+		}
+		100% {
+			transform: translate(-50%, -50%) scale(5.5);
+			opacity: 0;
+		}
+	}
 
-.userLocation.weak {
-        width: 80px;
-        height: 80px;
-        background: transparent;
-        position: relative;
+	@keyframes pulseIn {
+		0% {
+			transform: translate(-50%, -50%) scale(1);
+			opacity: 0;
+		}
+		50% {
+			transform: translate(-50%, -50%) scale(0);
+			opacity: 0.6;
+		}
+		100% {
+			transform: translate(-50%, -50%) scale(1);
+			opacity: 0;
+		}
+	}
 
-        > .userPulse {
-            width: 80%;
-            height: 80%;
-            border-radius: 50%;
-            background-color: rgba(48, 197, 51, 0.8);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            animation: pulseIn 2s infinite;
-        }
+	.transitIconBox {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
 
-        > .userCircle {
-            width: 80%;
-            height: 80%;
-            border-radius: 50%;
-            background-color: rgba(49, 197, 51, 0.1);
-            border: 4px solid rgba(48, 197, 51, 0.8);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-}
-
-@keyframes pulse {
-    0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 0.8;
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(5.5);
-        opacity: 0;
-    }
-}
-
-@keyframes pulseIn {
-    0% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 0;
-    }
-    50% {
-        transform: translate(-50%, -50%) scale(0);
-        opacity: 0.6;
-    }
-    100% {
-        transform: translate(-50%, -50%) scale(1);
-        opacity: 0;
-    }
-}
-
-
-.transitIconBox {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-
-    > svg {
-        /* width: 80%;
-        height: 80%; */
-        object-fit: cover;
-    }
-}
-
-
+		> svg {
+			object-fit: cover;
+		}
+	}
 </style>
 
 <style>
-    /* https://css-loaders.com/dots-bars/ */
+	/* https://css-loaders.com/dots-bars/ */
 
-/* #map {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-} */
-/* 
-<div class="userLocation">
-                    <div class="userHeading"></div>
-                    <div class="userPulse"></div>
-                    <div class="userCircle"></div>
-                </div> */
+	.loading {
+		width: 40px;
+		aspect-ratio: 1;
+		--c: linear-gradient(#000 0 0);
+		--r1: radial-gradient(farthest-side at bottom, #000 93%, #0000);
+		--r2: radial-gradient(farthest-side at top, #000 93%, #0000);
+		background: var(--c), var(--r1), var(--r2), var(--c), var(--r1), var(--r2), var(--c), var(--r1), var(--r2);
+		background-repeat: no-repeat;
+		animation: l2 1s infinite alternate;
+	}
+	@keyframes l2 {
+		0%,
+		25% {
+			background-size:
+				8px 0,
+				8px 4px,
+				8px 4px,
+				8px 0,
+				8px 4px,
+				8px 4px,
+				8px 0,
+				8px 4px,
+				8px 4px;
+			background-position:
+				0 50%,
+				0 calc(50% - 2px),
+				0 calc(50% + 2px),
+				50% 50%,
+				50% calc(50% - 2px),
+				50% calc(50% + 2px),
+				100% 50%,
+				100% calc(50% - 2px),
+				100% calc(50% + 2px);
+		}
+		50% {
+			background-size:
+				8px 100%,
+				8px 4px,
+				8px 4px,
+				8px 0,
+				8px 4px,
+				8px 4px,
+				8px 0,
+				8px 4px,
+				8px 4px;
+			background-position:
+				0 50%,
+				0 calc(0% - 2px),
+				0 calc(100% + 2px),
+				50% 50%,
+				50% calc(50% - 2px),
+				50% calc(50% + 2px),
+				100% 50%,
+				100% calc(50% - 2px),
+				100% calc(50% + 2px);
+		}
+		75% {
+			background-size:
+				8px 100%,
+				8px 4px,
+				8px 4px,
+				8px 100%,
+				8px 4px,
+				8px 4px,
+				8px 0,
+				8px 4px,
+				8px 4px;
+			background-position:
+				0 50%,
+				0 calc(0% - 2px),
+				0 calc(100% + 2px),
+				50% 50%,
+				50% calc(0% - 2px),
+				50% calc(100% + 2px),
+				100% 50%,
+				100% calc(50% - 2px),
+				100% calc(50% + 2px);
+		}
+		95%,
+		100% {
+			background-size:
+				8px 100%,
+				8px 4px,
+				8px 4px,
+				8px 100%,
+				8px 4px,
+				8px 4px,
+				8px 100%,
+				8px 4px,
+				8px 4px;
+			background-position:
+				0 50%,
+				0 calc(0% - 2px),
+				0 calc(100% + 2px),
+				50% 50%,
+				50% calc(0% - 2px),
+				50% calc(100% + 2px),
+				100% 50%,
+				100% calc(0% - 2px),
+				100% calc(100% + 2px);
+		}
+	}
 
+	/* ------ POPUP STYLING ------ */
 
-
-
-
-
-
-
-
-
-
-.loading {
-  width: 40px;
-  aspect-ratio: 1;
-  --c: linear-gradient(#000 0 0);
-  --r1: radial-gradient(farthest-side at bottom,#000 93%,#0000);
-  --r2: radial-gradient(farthest-side at top   ,#000 93%,#0000);
-  background: 
-    var(--c) ,var(--r1),var(--r2),
-    var(--c) ,var(--r1),var(--r2),
-    var(--c) ,var(--r1),var(--r2);
-  background-repeat: no-repeat;
-  animation: l2 1s infinite alternate;
-}
-@keyframes l2 {
-  0%,25% {
-    background-size: 8px 0,8px 4px,8px 4px,8px 0,8px 4px,8px 4px,8px 0,8px 4px,8px 4px;
-    background-position: 0 50%,0 calc(50% - 2px),0 calc(50% + 2px),50% 50%,50% calc(50% - 2px),50% calc(50% + 2px),100% 50%,100% calc(50% - 2px),100% calc(50% + 2px);
- }
- 50% {
-    background-size: 8px 100%,8px 4px,8px 4px,8px 0,8px 4px,8px 4px,8px 0,8px 4px,8px 4px;
-    background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(50% - 2px),50% calc(50% + 2px),100% 50%,100% calc(50% - 2px),100% calc(50% + 2px);
- }
- 75% {
-    background-size: 8px 100%,8px 4px,8px 4px,8px 100%,8px 4px,8px 4px,8px 0,8px 4px,8px 4px;
-    background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(0% - 2px),50% calc(100% + 2px),100% 50%,100% calc(50% - 2px),100% calc(50% + 2px);
- }
- 95%,100% {
-    background-size: 8px 100%,8px 4px, 8px 4px,8px 100%,8px 4px,8px 4px,8px 100%,8px 4px,8px 4px;
-    background-position: 0 50%,0 calc(0% - 2px),0 calc(100% + 2px),50% 50%,50% calc(0% - 2px),50% calc(100% + 2px),100% 50%,100% calc(0% - 2px),100% calc(100% + 2px);
- }
-}
-
-/* .userLocation {
-    transform-origin: center;
-    animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-    0% {
-        stroke-opacity: 1;
-        stroke-width: 2;
-    }
-    50% {
-        stroke-opacity: 0.3;
-        stroke-width: 10;
-    }
-    100% {
-        stroke-opacity: 1;
-        stroke-width: 2;
-    }
-} */
-
-/* ------ POPUP STYLING ------ */
-
-.livePopupContainer {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    border-radius: 18px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
-}
+	.livePopupContainer {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		margin: 0;
+		padding: 0;
+		border-radius: 18px;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+	}
 </style>

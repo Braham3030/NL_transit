@@ -12,9 +12,6 @@ export async function GET({ request }) {
         const fileContents = await fs.readFile(filePath, 'utf-8');
         const allRoutes = JSON.parse(fileContents);
 
-        // console.log(fileContents);
-        // const response = await fetch(filePath);
-
         let filteredRoutes = allRoutes;
 
         // Filter routes based on the provided route_id in json

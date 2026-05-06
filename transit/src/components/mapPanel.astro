@@ -1,853 +1,641 @@
 ---
-import Navigation from './Navigation.astro';
-import RouteTransitList from './RouteTransitList.astro';
-import LiveTransitList from './LiveTransitList.astro';
-import Header from './Header.astro';
+import Navigation from "./Navigation.astro";
+import RouteTransitList from "./RouteTransitList.astro";
+import Header from "./Header.astro";
 ---
 
 <div class="backBtnContainer">
-        <button class="backBtn" type="button">
-            <span>Back to search</span>
-        </button>
-    </div>
+	<button class="backBtn" type="button">
+		<span>Back to search</span>
+	</button>
+</div>
 <div id="bottomPanel" class="panelBox">
-    <Header />
-    <!-- <span id="panelHandleContainer">
-        <span class="panelHandle"></span>
-        <span class="panelHandle"></span>
-    </span> -->
-    <div class="searchBoxContainer">
-    <label for="Search" class="searchBox">
-        <input type="text" id="Search" placeholder="" autocorrect="off" list="searchOptions">
-        <span id="searchTextBox">Search for <span id="searchText"></span></span>
+	<Header />
+	<div class="searchBoxContainer">
+		<label for="Search" class="searchBox">
+			<input type="text" id="Search" placeholder="" autocorrect="off" list="searchOptions" />
+			<span id="searchTextBox">Search for <span id="searchText"></span></span>
 
-        <!-- Browser dropdown for search -->
-         <!-- https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/datalist -->
-        <datalist id="searchOptions"></datalist>
-        
-    </label>
-    <button class="closeBtn" type="button">
-            <span></span>
-            <span></span>
-        </button>
-    </div>
-    <div class="containerRouteLive">
-        <div class="tabRoute">
-            <RouteTransitList />
-        </div>
-        <div class="tabLive">
-            <LiveTransitList />
-        </div>
-    </div>
-    <div class="navigationContainer">
-        <Navigation />
-    </div>
+			<!-- Browser dropdown for search -->
+			<!-- https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/datalist -->
+			<datalist id="searchOptions"></datalist>
+		</label>
+		<button class="closeBtn" type="button">
+			<span></span>
+			<span></span>
+		</button>
+	</div>
+	<div class="tabRoute">
+		<RouteTransitList />
+	</div>
+	<div class="navigationContainer">
+		<Navigation />
+	</div>
 </div>
 
 <script>
-    // @ts-nocheck
-    const panel = document.getElementById("bottomPanel");
-    const handle = document.getElementById("panelHandleContainer");
-    const searchBoxContainer = document.querySelector(".searchBoxContainer");
-
-    let isOpen = false;
-
-    const togglePanel = () => {
-        if (!panel) return;
-        isOpen = !isOpen;
-
-        if (isOpen) {
-            panel.classList.add("close");
-        } else {
-            panel.classList.remove("close");
-        }
-    }
-
-    let isDragging = false;
-    let startY = 0;
-    let startHeight = 0;
-
-
-    handle?.addEventListener("pointerdown", (e) => {
-        if (!panel) return;
-
-        isDragging = true;
-        startY = e.clientY;
-
-        // Calculate the current panel height
-        startHeight = panel.getBoundingClientRect().height;
-
-        panel.style.transition = "none";
-
-        if (searchBoxContainer)
-        searchBoxContainer.style.transition = "none";
-
-        // Browser keeps following the pointer even if it goes outside the element
-        handle.setPointerCapture(e.pointerId);
-    });
-
-    window.addEventListener("pointermove", (e) => {
-        if (!isDragging || !panel) return;
-
-        const deltaY = startY - e.clientY;
-        let newHeight = startHeight + deltaY;
-        
-        const windowHeight = window.innerHeight;
-        // Minimum height is 20% of the window
-        const minHeight = windowHeight * 0.1;
-        // Maximum height is 80% of the window
-        const maxHeight = windowHeight * 0.8;
-
-        if (newHeight < minHeight) newHeight = minHeight;
-        if (newHeight > maxHeight) newHeight = maxHeight;
-
-
-        const windowWidth = window.innerWidth;
-        let minWidth;
-        let maxWidth;
-
-        // if, else statement to determine screen size for width calculations
-        if (windowWidth > 1200) {
-            minWidth = windowWidth * 0.2;
-            maxWidth = windowWidth * 0.24;
-        } else if (windowWidth > 800 && windowWidth < 1199) {
-            minWidth = windowWidth * 0.3;
-            maxWidth = windowWidth * 0.4;
-        } else {
-            minWidth = windowWidth * 0.9;
-            maxWidth = windowWidth * 1;
-        }
-
-        // Calculates the height progress as a value between 0 and 1. 0 is the minimum height and 1 the maximum height.
-        const progress = (newHeight - minHeight) / (maxHeight - minHeight);
-
-        // Calculates the new width based on the progress.
-        let newWidth = minWidth + (maxWidth - minWidth) * progress;
-        
-        // Calculates the new bottom position based on the progress.
-        // 2 - (2 * progress) prevents the bottom from going below 0
-        const newBottom = 2 - (2 * progress);
-
-        const newOpacity = 0.2 + (0.4 * progress);
-        
-        const newBorderRadius = 36 - (20 * progress);
-
-        const newSearchBoxMarginTop = 1.6 + (4 * progress);
-        const newSearchBoxMarginBottom = 8 - (2 * progress);
-
-
-        panel.style.height = `${newHeight}px`;
-        panel.style.width = `${newWidth}px`;
-        panel.style.bottom = `${newBottom}em`;
-        panel.style.opacity = `${newOpacity}`;
-        panel.style.borderRadius = `${newBorderRadius}px`;
-        
-        searchBoxContainer.style.marginTop = `${newSearchBoxMarginTop}em`;
-        searchBoxContainer.style.marginBottom = `${newSearchBoxMarginBottom}em`;
-    });
-
-    window.addEventListener("pointerup", (e) => {
-        if (!isDragging || !panel) return;
-        isDragging = false;
-
-        panel.style.transition = ""; 
-        if (handle.hasPointerCapture(e.pointerId)) {
-            handle.releasePointerCapture(e.pointerId);
-        }
-
-
-        const distanceMoved = Math.abs(startY - e.clientY);
-
-        if (distanceMoved < 5) {
-            togglePanel();
-            panel.style.height = "";
-            panel.style.width = "";
-            panel.style.bottom = "";
-            panel.style.opacity = "";
-            panel.style.borderRadius = "";
-            searchBoxContainer.style.marginTop = "";
-            searchBoxContainer.style.marginBottom = "";
-
-            // If the panel was toggled, the search box will reset to its default position and styling 
-            if (searchBoxContainer) {
-                searchBoxContainer.style.transition = "";
-                searchBoxContainer.style.marginTop = "";
-                searchBoxContainer.style.marginBottom = "";
-            }
-            return;
-        }
-
-        const currentHeight = panel.getBoundingClientRect().height;
-        const threshold = window.innerHeight * 0.5;
-
-        if (currentHeight > threshold) {
-            isOpen = true;
-            panel.classList.add("close");
-        } else {
-            isOpen = false;
-            panel.classList.remove("close");
-        }
-
-
-        // The styling for the open state gets removed. Now the CSS will take over
-        panel.style.height = "";
-        panel.style.width = "";
-        panel.style.bottom = "";
-        panel.style.opacity = "";
-        panel.style.borderRadius = "";
-        searchBoxContainer.style.marginTop = "";
-        searchBoxContainer.style.marginBottom = "";
+	// @ts-nocheck
+	const panel = document.getElementById("bottomPanel");
+	const handle = document.getElementById("panelHandleContainer");
+	const searchBoxContainer = document.querySelector(".searchBoxContainer");
+
+	let isOpen = false;
+
+	const togglePanel = () => {
+		if (!panel) return;
+		isOpen = !isOpen;
+
+		if (isOpen) {
+			panel.classList.add("close");
+		} else {
+			panel.classList.remove("close");
+		}
+	};
+
+	let isDragging = false;
 
-        // The styling for the "open" state will be removed and defaulted to the css state
-        if (searchBoxContainer) {
-            searchBoxContainer.style.transition = "";
-            searchBoxContainer.style.marginTop = "";
-            searchBoxContainer.style.marginBottom = "";
-        }
-    });
-
-    // Random words for search
-
-    const searchWords = ["transit", "stop", "route"];
-    const searchText = document.getElementById("searchText");
-    let currentWordIndex = 0;
-
-
-    setInterval(() => {
-
-        searchText.classList.remove('slideIn');
-        searchText.classList.add('slideOut');
+	// Random words for search
+
+	const searchWords = ["transit", "stop", "route"];
+	const searchText = document.getElementById("searchText");
+	let currentWordIndex = 0;
+
+	setInterval(() => {
+		searchText.classList.remove("slideIn");
+		searchText.classList.add("slideOut");
+
+		setTimeout(() => {
+			// currentWordIndex starts at "0" and increases with "1" each interval
+			// The "%" here makes the loop complete. It makes sure that the word goes back to the orignal "searchWords.length"
+			currentWordIndex = (currentWordIndex + 1) % searchWords.length;
+			searchText.textContent = searchWords[currentWordIndex];
+			searchText.classList.remove("slideOut");
+			searchText.classList.add("slideIn");
+		}, 800);
+	}, 2000);
+
+	// close button
+
+	const closeBtn = document.querySelector(".closeBtn");
+	const searchElement = document.getElementById("Search");
+
+	closeBtn?.addEventListener("click", () => {
+		if (!panel) return;
 
-        setTimeout(() => {
-            // currentWordIndex starts at "0" and increases with "1" each interval
-            // The "%" here makes the loop complete. It makes sure that the word goes back to the orignal "searchWords.length"
-            currentWordIndex = (currentWordIndex + 1) % searchWords.length;
-            searchText.textContent = searchWords[currentWordIndex];
-            searchText.classList.remove('slideOut');
-            searchText.classList.add('slideIn');
-    }, 800);
-}, 2000);
+		isOpen = false;
+		panel.classList.add("close");
 
+		// The styling for the "open" state will be removed and defaulted to the styles in css
+		panel.style.height = "";
+		panel.style.width = "";
+		panel.style.opacity = "";
 
-    // close button 
-
-    const closeBtn = document.querySelector(".closeBtn");
-    const searchElement = document.getElementById("Search");
-
-    closeBtn?.addEventListener("click", () => {
-        if (!panel) return;
-
-        isOpen = false;
-        panel.classList.remove("close");
-
-        // The styling for the "open" state will be removed and defaulted to the styles in css
-        panel.style.height = "";
-        panel.style.width = "";
-        panel.style.opacity = "";
-
-        if (searchElement) {
-            // The placeholder will be empty
-            searchElement.value = "";
-        }
-    })
-
-
-    // Search functionality for data
-
-    if (searchElement) {
-        searchElement.addEventListener("keydown", (e) => {
-            // Enter key will trigger the search
-            if (e.key === "Enter") {
-                // Prevents default "Enter" key behavior. Which is to submit a form
-                e.preventDefault();
-
-                // The search value is trimmed to remove extra spaces 
-                const searchValue = searchElement.value.trim();
-
-                if (searchValue !== "") {
-                    console.log(`Searching for: ${searchValue}`);
-
-                    // Custom event is being used to communicate the search value with the other components.
-                    // "search-line" is the name of the event in the other component
-                    const searchResults = new CustomEvent("search-line", {
-                        detail: { searchName: searchValue }
-                    });
-
-                    document.dispatchEvent(searchResults);
-
-                    // isOpen = false;
-                    // panel.classList.add("close");
-
-                    // panel.style.height = "";
-                    // panel.style.width = "";
-                    // panel.style.opacity = "";
-
-                    searchElement.blur();
-                }
-            }
-        })
-    }
-
-
-    document.addEventListener("line-check", (e) => {
-        const transitLat = e.detail.lat;
-        const transitLon = e.detail.lon;
-
-        if (transitLat && transitLon) {
-            isOpen = false;
-            panel.classList.add("close");
-
-            panel.style.height = "";
-            panel.style.width = "";
-            panel.style.opacity = "";
-            
-        }
-    });
-
-    const searchInput = document.getElementById("Search");
-    const searchOptions = document.getElementById("searchOptions");
-
-    searchInput?.addEventListener("focus", async () => {
-        if (searchOptions.options.length > 0) return;
-
-        const routeResponse = await fetch("/api/Routes");
-        const stopsResponse = await fetch("/api/Stops");
-
-        const routeData = await routeResponse.json();
-        const stopsData = await stopsResponse.json();
-
-        let dropDownSearch = "";
-
-        routeData.forEach(route => {
-            dropDownSearch += `<option value="${route.route_short_name}">${route.route_short_name} - ${route.route_long_name}</option>`;
-        })
-
-        stopsData.forEach(stop => {
-            dropDownSearch += `<option value="${stop.stop_name}">${stop.stop_name}</option>`;
-        })
-        
-
-        searchOptions.innerHTML = dropDownSearch;
-    });
-
-
-    // Fun element: mouse following glow effect
-    if (panel) {
-        panel.addEventListener("mousemove", (e) => {
-            // getBoundingClientRect calculates the size of the element and keeps the mouse calculations in the next "const" within the panel
-            const rect = panel.getBoundingClientRect();
-
-            // This is the calculation for mouse position in x and in y axis
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-
-            panel.style.setProperty("--mouse-x", `${x}px`);
-            panel.style.setProperty("--mouse-y", `${y}px`);
-        })
-    };
-
-    // back Button opening panel
-
-    const backBtn = document.querySelector(".backBtn");
-
-    backBtn.addEventListener("click", () => {
-        if (!panel) return;
-
-        isOpen = true;
-        setTimeout(() => {
-            panel.classList.remove("close");
-        }, 200);
-        panel.style.height = "";
-        panel.style.width = "";
-        panel.style.opacity = "";
-        
-        // backBtn.style.right = "-5em"
-
-    })
-
+		if (searchElement) {
+			// The placeholder will be empty
+			searchElement.value = "";
+		}
+	});
+
+	// Search functionality for data
+
+	if (searchElement) {
+		searchElement.addEventListener("keydown", (e) => {
+			// Enter key will trigger the search
+			if (e.key === "Enter") {
+				// Prevents default "Enter" key behavior. Which is to submit a form
+				e.preventDefault();
+
+				// The search value is trimmed to remove extra spaces
+				const searchValue = searchElement.value.trim();
+
+				if (searchValue !== "") {
+					console.log(`Searching for: ${searchValue}`);
+
+					// Custom event is being used to communicate the search value with the other components.
+					// "search-line" is the name of the event in the other component
+					const searchResults = new CustomEvent("search-line", {
+						detail: { searchName: searchValue },
+					});
+
+					document.dispatchEvent(searchResults);
+
+					searchElement.blur();
+				}
+			}
+		});
+	}
+
+	document.addEventListener("line-check", (e) => {
+		const transitLat = e.detail.lat;
+		const transitLon = e.detail.lon;
+
+		if (transitLat && transitLon) {
+			isOpen = false;
+			panel.classList.add("close");
+
+			panel.style.height = "";
+			panel.style.width = "";
+			panel.style.opacity = "";
+		}
+	});
+
+	const searchInput = document.getElementById("Search");
+	const searchOptions = document.getElementById("searchOptions");
+
+	searchInput?.addEventListener("focus", async () => {
+		if (searchOptions.options.length > 0) return;
+
+		const routeResponse = await fetch("/api/Routes");
+		const stopsResponse = await fetch("/api/Stops");
+
+		const routeData = await routeResponse.json();
+		const stopsData = await stopsResponse.json();
+
+		let dropDownSearch = "";
+
+		routeData.forEach((route) => {
+			dropDownSearch += `<option value="${route.route_short_name}">${route.route_short_name} - ${route.route_long_name}</option>`;
+		});
+
+		stopsData.forEach((stop) => {
+			dropDownSearch += `<option value="${stop.stop_name}">${stop.stop_name}</option>`;
+		});
+
+		searchOptions.innerHTML = dropDownSearch;
+	});
+
+	// Fun element: mouse following glow effect
+	if (panel) {
+		panel.addEventListener("mousemove", (e) => {
+			// getBoundingClientRect calculates the size of the element and keeps the mouse calculations in the next "const" within the panel
+			const rect = panel.getBoundingClientRect();
+
+			// This is the calculation for mouse position in x and in y axis
+			const x = e.clientX - rect.left;
+			const y = e.clientY - rect.top;
+
+			panel.style.setProperty("--mouse-x", `${x}px`);
+			panel.style.setProperty("--mouse-y", `${y}px`);
+		});
+	}
+
+	// back Button opening panel
+
+	const backBtn = document.querySelector(".backBtn");
+
+	backBtn.addEventListener("click", () => {
+		if (!panel) return;
+
+		isOpen = true;
+		setTimeout(() => {
+			panel.classList.remove("close");
+			backBtn.classList.add("backAnimation");
+		}, 20);
+		panel.style.height = "";
+		panel.style.width = "";
+		panel.style.opacity = "";
+	});
 </script>
 
 <style>
-
-.backBtnContainer {
-            opacity: 1;
-            z-index: 999;
-            position: absolute;
-            bottom: 6%;
-            left: 1.3em;
-            transform: translate(-5%, -50%);
-            border: 2px solid red;
-            border-radius: 18px;
-
-            transition: bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
-
-            > .backBtn {
-                border: 2px solid red;
-                padding: 1em;
-                border-radius: inherit;
-                background-color: rgba(0, 0, 0, 0.8);
-                box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
-                backdrop-filter: blur(16px);
-
-                > span {
-                    color: white;
-                    font-size: 1.5em;
-            }
-            }
-
-        }
-
-    .panelBox {
-        z-index: 11111;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        flex-direction: column;
-        position: absolute;
-        bottom: 0em;
-        left: 50%;
-        transform: translate(-50%, 150%) scale(0.5);
-        width: 100vw;
-        height: 100vh;
-        opacity: 1;
-
-        background-color: rgba(0, 0, 0, 0.8);
-        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(16px);
-        
-        /* border-radius: 36px 36px 0 0; */
-        overflow: hidden;
-
-        margin: 0;
-        padding: 1.5rem;
-
-        animation: slideInBottom 1s cubic-bezier(0.33, 0.72, 0, 1.18) 0.5s forwards;
-
-        transition: height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
-
-        &::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: var(--mouse-x);
-            top: var(--mouse-y);
-            transform: translate(-50%, -50%);
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            background-color: rgba(138, 138, 138, 0.6);
-            filter: blur(100px) brightness(15) contrast(150%) saturate(20%);
-
-            transition: top 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
-        }
-
-        /* > #panelHandleContainer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 1em;
-            position: fixed;
-
-            width: 20em;
-            height: 2em;
-            touch-action: none;
-            cursor: grab;
-
-            transition: all 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
-
-        > span {
-            margin: 0.6em 0em;
-            width: 6em;
-            height: 0.6em;
-            background-color: rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            position: absolute;
-            top: 0;
-            left: 50%;
-            transform: translate(-50%, 0%) rotate(0deg);
-            z-index: 1000;
-
-            cursor: grab;
-            touch-action: none;
-
-            transition: width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), transform 0.6s cubic-bezier(0.33, 0.72, 0, 1.18);
-
-        &:active {
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
-            cursor: grabbing;
-        }
-    }
-    } */
-    }
-
-    .panelBox.close {
-        border-radius: 36px;
-        bottom: 0;
-        width: 95vw;
-        height: 0vh;
-        opacity: 0 !important;
-
-        background-color: rgba(0, 0, 0, 0.8);
-        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 2px 20px rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(6px);
-
-        /* > #panelHandleContainer {
-            height: 3em;
-
-        > span:first-of-type {
-            top: 0;
-            left: 50%;
-            width: 3em;
-            transform-origin: right;
-            transform: translate(-25%, -50%) rotate(-35deg);
-            background-color: rgba(0, 0, 0, 1);
-            box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
-        }
-        > span:last-of-type {
-            top: 0;
-            left: 50%;
-            width: 3em;
-            transform: translate(-75%, -50%) rotate(35deg);
-            transform-origin: left;
-            background-color: rgba(0, 0, 0, 1);
-            box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
-        }
-    }
-
-        > .searchBoxContainer {
-            width: 90%;
-            margin-top: 4em;
-            margin-bottom: 0em;
-
-        > .searchBox {
-            width: 100%;
-            
-            background-color: rgba(0, 0, 0, 0.8);
-            padding: 0;
-
-            > #Search {
-                width: 100%;
-            }
-
-            > #searchTextBox {
-                transform: translate(9%, -50%);
-            }
-            
-        }
-            
-        } */
-
-    }
-
-    /* Removal of default arrow icon */
-    /* https://www.geeksforgeeks.org/css/how-to-remove-the-default-arrow-icon-from-a-dropdown-list/ */
-    #Search::-webkit-calendar-picker-indicator {
-        display: none !important;
-    }
-
-    .searchBoxContainer {
-        width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: flex-start;
-        color: rgba(0, 0, 0, 0.8);
-        border-radius: 24px;
-        margin-bottom: 8em;
-        margin-top: 1.6em;
-        position: relative;
-        
-        transition: margin-bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), margin-top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
-
-    > .searchBox {
-        width: 100%;
-        border-radius: 24px;
-        position: relative;
-        background-color: rgba(0, 0, 0, 0.7);
-
-
-        > #searchTextBox {
-            position: absolute;
-            top: 50%;
-            left: 0%;
-            transform: translate(12%, -50%);
-            opacity: 1;
-            font-size: 22px;
-            color: white;
-            pointer-events: none;
-            overflow: hidden;
-            text-align: left;
-            width: 80%;
-
-            transition: opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), transform 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), font-size 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18);
-
-        > #searchText {
-            display: inline-block;
-            font-weight: 700;
-            text-shadow: 0 0px 4px rgba(255, 255, 255, 0.6);
-        }
-    }
-
-        > #Search {
-            width: 100%;
-            text-align: left;
-            border: 2px solid green;
-            height: 100%;
-            padding: 0.5em;
-            border-radius: inherit;
-            font-size: 22px;
-            border: none;
-            outline: none;
-            box-shadow: 0 0px 10px rgba(255, 255, 255, 0.2);
-            color: white;
-            background-color: transparent;
-
-            transition: background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
-
-        }
-
-        
-    }
-    > .closeBtn {
-            width: 4.5em;
-            height: 3em;
-            border-radius: 40%;
-
-            position: absolute;
-            right: 10%;
-            top: 50%;
-            transform: translate(0%, -50%);
-            opacity: 0;
-            z-index: -1;
-            pointer-events: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-color: transparent;
-
-            border: none;
-            box-shadow: 0 0px 0px rgba(0, 0, 0, 0.6);
-
-            transition: transform 0.4s cubic-bezier(0.33, 0.72, 0, 1.18), right 0.4s cubic-bezier(0.33, 0.72, 0, 1.18), top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), box-shadow 0.6s cubic-bezier(0.33, 0.72, 0, 1.18) 0.6s;
-
-            > span {
-                width: 3em;
-                height: 0.5em;
-                background-color: rgb(255, 255, 255);
-                border-radius: 18px;
-                z-index: 1;
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%) rotate(0deg);
-                pointer-events: none;
-
-                transition: transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
-            }
-        }
-}
-
-        &:has(#Search:not(:placeholder-shown)) #searchTextBox {
-            opacity: 0;
-            transform: translate(100%, -50%);
-            font-size: 16px;
-
-        }
-
-        &:has(#Search:focus) .panelBox {
-            /* border-radius: 20px 20px 0 0;
-            bottom: 0;
-            width: 100vw;
-            height: 80vh;
-
-            background-color: rgba(0, 0, 0, 0.8);
-            box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 2px 20px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px); */
-
-            /* > #panelHandleContainer {
-                height: 3em;
-
-             > span:first-of-type {
-                top: 0;
-                left: 50%;
-                width: 3em;
-                transform-origin: right;
-                transform: translate(-25%, -50%) rotate(-35deg);
-                background-color: rgba(0, 0, 0, 1);
-                box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
-            }
-            > span:last-of-type {
-                top: 0;
-                left: 50%;
-                width: 3em;
-                transform: translate(-75%, -50%) rotate(35deg);
-                transform-origin: left;
-                background-color: rgba(0, 0, 0, 1);
-                box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
-            }
-        } */
-
-            > .searchBoxContainer {
-                width: 100%;
-                /* margin-top: 4em;
-                margin-bottom: 2em; */
-
-            > .searchBox {
-                width: 100%;
-                background-color: transparent;
-
-                > #searchTextBox {
-                    transform: translate(5%, -50%);
-                    opacity: 1;
-
-                    transition: opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), transform 0.6s cubic-bezier(0.33, 0.72, 0, 1.18), font-size 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18);
-                }
-                
-                > #Search {
-                    box-shadow: 0 0px 30px rgb(255, 255, 255);
-                    width: 80%;
-                    background-color: transparent;
-                }
-            }
-
-            > .closeBtn {
-                    margin: 0 auto;
-                    width: 4em;
-                    height: 4em;
-                    border-radius: 50%;
-                    position: absolute;
-                    right: 0;
-                    top: 50%;
-                    transform: translate(0%, -50%);
-                    opacity: 1;
-                    pointer-events: all;
-                    z-index: 1000;
-                    box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.8);
-                    cursor: pointer;
-                    
-
-                > span:first-child {
-                    transform: translate(-50%, -50%) rotate(45deg);
-                }
-                > span:last-child {
-                    transform: translate(-50%, -50%) rotate(-45deg);
-                }
-            }
-        }
-
-        &:has(#Search:not(:placeholder-shown)) #searchTextBox {
-            opacity: 0;
-            transform: translate(20%, -50%);
-            left: 20%;
-            }
-        }
-        
-        .slideIn {
-            animation: SlideInText 0.8s ease-in-out forwards;
-        }
-
-        .slideOut {
-            animation: SlideOutText 0.8s ease-in-out forwards;
-        }
-
-        .containerRouteLive {
-            flex: 1;
-            width: fit-content;
-            margin: 0 auto;
-        }
-
-        .navigationContainer {
-            width: 100%;
-            padding-bottom: 5em;
-        }
-
-        .tabLive, .tabRoute {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            visibility: hidden;
-
-            transition: opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), visibility 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
-        }
-    
-    
-
-    @keyframes slideInBottom {
-        0% {
-            height: 0;
-            transform: translate(-50%, 0%) scale(1);
-            opacity: 0;
-        }
-        100% {
-            height: 0vh;
-            transform: translate(-50%, 0) scale(1);
-            opacity: 1;
-        }
-    }
-
-    @keyframes SlideInText {
-        0% {
-            opacity: 0;
-            transform: translateY(-100%) scale(0.8);
-        }
-        100% {
-            opacity: 1;
-            transform: translateY(0%) scale(1);
-        }
-    }
-
-    @keyframes SlideOutText {
-        0% {
-            opacity: 1;
-            transform: translateY(0%) scale(1);
-        }
-        100% {
-            opacity: 0;
-            transform: translateY(100%) scale(0.8);
-        }
-    }
-
-    /* Desktop layout */
-
-    @media (min-width: 1200px) {
-        .panelBox {
-            bottom: .5em;
-            left: 14%;
-            transform: translate(-50%, 150%) scale(0.5);
-            width: 24vw;
-
-            transition: left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
-        }
-
-        .panelBox.open {
-            left: 14%;
-            width: 24vw;
-        }
-
-        &:has(#Search:focus) .panelBox {
-            width: 24vw;
-        }
-    }
-    
-    @media (min-width: 800px) and (max-width: 1199px) {
-        .panelBox {
-            bottom: 1em;
-            left: 18%;
-            transform: translate(-50%, 150%) scale(0.5);
-            width: 35vw;
-
-            transition: left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18), background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18), opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
-        }
-
-        .panelBox.open {
-            left: 18%;
-            width: 30vw;
-        }
-
-        &:has(#Search:focus) .panelBox {
-            width: 30vw;
-        }
-    }
+	.backBtnContainer {
+		opacity: 0;
+		visibility: hidden;
+		z-index: 999;
+		position: absolute;
+		bottom: 6.5%;
+		left: 1.3em;
+		transform: translate(-5%, 100%);
+		border-radius: 18px;
+		background: transparent;
+
+		transition:
+			bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			visibility 0s cubic-bezier(0.33, 0.72, 0, 1.18) 0.8s;
+
+		> .backBtn {
+			padding: 1em;
+			border-radius: inherit;
+			background-color: rgba(0, 0, 0, 0.7);
+			box-shadow: 0 2px 20px rgba(0, 0, 0, 0.3);
+			backdrop-filter: blur(8px);
+			cursor: pointer;
+			border: none;
+
+			> span {
+				color: white;
+				font-size: 24px;
+				font-weight: bold;
+			}
+		}
+	}
+
+	body:has(.panelBox.close) .backBtnContainer {
+		z-index: 9999999;
+		opacity: 1;
+		visibility: visible;
+		transform: translate(-5%, -50%);
+	}
+
+	.panelBox {
+		z-index: 11111;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		flex-direction: column;
+		position: absolute;
+		bottom: 0em;
+		left: 50%;
+		transform: translate(-50%, 150%);
+		width: 100vw;
+		height: 100vh;
+		opacity: 1;
+
+		background-color: rgba(0, 0, 0, 0.8);
+		box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(16px);
+
+		overflow: hidden;
+		margin: 0;
+		padding: 1.5rem;
+
+		animation: slideInBottom 1s cubic-bezier(0.33, 0.72, 0, 1.18) 1.2s forwards;
+
+		transition:
+			height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18),
+			bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
+			background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
+			left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+		&::before {
+			content: "";
+			position: absolute;
+			top: 0;
+			left: var(--mouse-x);
+			top: var(--mouse-y);
+			transform: translate(-50%, -50%);
+			width: 100px;
+			height: 100px;
+			border-radius: 50%;
+			background-color: rgba(138, 138, 138, 0.6);
+			filter: blur(100px) brightness(15) contrast(150%) saturate(20%);
+
+			transition:
+				top 0.2s cubic-bezier(0.33, 0.72, 0, 1.18),
+				left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18),
+				padding 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				visibility 0s cubic-bezier(0.33, 0.72, 0, 1.18);
+		}
+	}
+
+	.panelBox.close {
+		bottom: 0;
+		width: 100vw;
+		height: 0vh;
+		opacity: 0 !important;
+
+		background-color: rgba(0, 0, 0, 0.8);
+		box-shadow:
+			0 0 0 1px rgba(0, 0, 0, 0.8),
+			0 2px 20px rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(6px);
+
+		transition:
+			height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18),
+			bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
+			background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
+			left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+		animation: none;
+	}
+
+	/* Removal of default arrow icon */
+	/* https://www.geeksforgeeks.org/css/how-to-remove-the-default-arrow-icon-from-a-dropdown-list/ */
+	#Search::-webkit-calendar-picker-indicator {
+		display: none !important;
+	}
+
+	.searchBoxContainer {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		color: rgba(0, 0, 0, 0.8);
+		border-radius: 24px;
+		margin-bottom: 1em;
+		margin-top: 1.6em;
+		position: relative;
+
+		transition:
+			margin-bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			margin-top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			box-shadow 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+		> .searchBox {
+			width: 100%;
+			border-radius: 24px;
+			position: relative;
+			background-color: rgba(0, 0, 0, 0.7);
+
+			> #searchTextBox {
+				position: absolute;
+				top: 50%;
+				left: 0%;
+				transform: translate(12%, -50%);
+				opacity: 1;
+				font-size: 22px;
+				color: white;
+				pointer-events: none;
+				overflow: hidden;
+				text-align: left;
+				width: 80%;
+
+				transition:
+					opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+					transform 0.6s cubic-bezier(0.33, 0.72, 0, 1.18),
+					font-size 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+					left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18);
+
+				> #searchText {
+					display: inline-block;
+					font-weight: 700;
+					text-shadow: 0 0px 4px rgba(255, 255, 255, 0.6);
+				}
+			}
+
+			> #Search {
+				width: 100%;
+				text-align: left;
+				border: 2px solid green;
+				height: 100%;
+				padding: 0.5em;
+				border-radius: inherit;
+				font-size: 22px;
+				border: none;
+				outline: none;
+				box-shadow: 0 0px 10px rgba(255, 255, 255, 0.2);
+				color: white;
+				background-color: transparent;
+
+				transition:
+					background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+					width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+					border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+					box-shadow 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+			}
+		}
+		> .closeBtn {
+			width: 4.5em;
+			height: 3em;
+			border-radius: 40%;
+
+			position: absolute;
+			right: 10%;
+			top: 50%;
+			transform: translate(0%, -50%);
+			opacity: 0;
+			z-index: -1;
+			pointer-events: none;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background-color: transparent;
+
+			border: none;
+			box-shadow: 0 0px 0px rgba(0, 0, 0, 0.6);
+
+			transition:
+				transform 0.4s cubic-bezier(0.33, 0.72, 0, 1.18),
+				right 0.4s cubic-bezier(0.33, 0.72, 0, 1.18),
+				top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				opacity 0.6s cubic-bezier(0.33, 0.72, 0, 1.18),
+				height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18),
+				border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				box-shadow 0.6s cubic-bezier(0.33, 0.72, 0, 1.18) 0.6s;
+
+			> span {
+				width: 3em;
+				height: 0.5em;
+				background-color: rgb(255, 255, 255);
+				border-radius: 18px;
+				z-index: 1;
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%) rotate(0deg);
+				pointer-events: none;
+
+				transition: transform 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+			}
+		}
+	}
+
+	&:has(#Search:not(:placeholder-shown)) #searchTextBox {
+		opacity: 0;
+		transform: translate(100%, -50%);
+		font-size: 16px;
+	}
+
+	&:has(#Search:focus) .panelBox {
+		> .searchBoxContainer {
+			width: 100%;
+
+			> .searchBox {
+				width: 100%;
+				background-color: transparent;
+
+				> #searchTextBox {
+					transform: translate(5%, -50%);
+					opacity: 1;
+
+					transition:
+						opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+						transform 0.6s cubic-bezier(0.33, 0.72, 0, 1.18),
+						font-size 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+						left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18);
+				}
+
+				> #Search {
+					box-shadow: 0 0px 30px rgb(255, 255, 255);
+					width: 80%;
+					background-color: transparent;
+				}
+			}
+
+			> .closeBtn {
+				margin: 0 auto;
+				width: 4em;
+				height: 4em;
+				border-radius: 50%;
+				position: absolute;
+				right: 0;
+				top: 50%;
+				transform: translate(0%, -50%);
+				opacity: 1;
+				pointer-events: all;
+				z-index: 1000;
+				box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.8);
+				cursor: pointer;
+
+				> span:first-child {
+					transform: translate(-50%, -50%) rotate(45deg);
+				}
+				> span:last-child {
+					transform: translate(-50%, -50%) rotate(-45deg);
+				}
+			}
+		}
+
+		&:has(#Search:not(:placeholder-shown)) #searchTextBox {
+			opacity: 0;
+			transform: translate(20%, -50%);
+			left: 20%;
+		}
+	}
+
+	.slideIn {
+		animation: SlideInText 0.8s ease-in-out forwards;
+	}
+
+	.slideOut {
+		animation: SlideOutText 0.8s ease-in-out forwards;
+	}
+
+	.navigationContainer {
+		width: 100%;
+		padding-bottom: 5em;
+	}
+
+	.tabRoute {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		opacity: 1;
+		visibility: visible;
+		flex: 1;
+		height: 100%;
+		border-radius: 18px;
+
+		transition:
+			opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+			visibility 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+	}
+
+	body:has(.panelBox.close) :is(.tabRoute, .navigationContainer, .searchBoxContainer) {
+		opacity: 0;
+		visibility: hidden;
+		user-select: none;
+		z-index: -1;
+	}
+
+	@keyframes slideInBottom {
+		0% {
+			height: 0;
+			transform: translate(-50%, 0%) scale(1);
+			opacity: 0;
+		}
+		100% {
+			height: 100vh;
+			transform: translate(-50%, 0) scale(1);
+			opacity: 1;
+		}
+	}
+
+	@keyframes SlideInText {
+		0% {
+			opacity: 0;
+			transform: translateY(-100%) scale(0.8);
+		}
+		100% {
+			opacity: 1;
+			transform: translateY(0%) scale(1);
+		}
+	}
+
+	@keyframes SlideOutText {
+		0% {
+			opacity: 1;
+			transform: translateY(0%) scale(1);
+		}
+		100% {
+			opacity: 0;
+			transform: translateY(100%) scale(0.8);
+		}
+	}
+
+	/* Desktop layout */
+
+	@media (min-width: 1200px) {
+		.panelBox {
+			bottom: 0.5em;
+			left: 14%;
+			transform: translate(-50%, 150%) scale(0.5);
+			width: 24vw;
+
+			transition:
+				left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18),
+				width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
+				border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18),
+				background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
+				opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+		}
+
+		.panelBox.open {
+			left: 14%;
+			width: 24vw;
+		}
+
+		&:has(#Search:focus) .panelBox {
+			width: 24vw;
+		}
+
+		.backBtnContainer {
+			left: 2.8em;
+			bottom: 0%;
+		}
+	}
+
+	@media (min-width: 800px) and (max-width: 1199px) {
+		.panelBox {
+			bottom: 1em;
+			left: 18%;
+			transform: translate(-50%, 150%) scale(1);
+			width: 35vw;
+
+			transition:
+				left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18),
+				width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
+				border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18),
+				background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
+				opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+		}
+
+		.panelBox.open {
+			left: 18%;
+			width: 30vw;
+		}
+
+		&:has(#Search:focus) .panelBox {
+			width: 30vw;
+		}
+	}
 </style>

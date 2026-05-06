@@ -1,256 +1,251 @@
 ---
 // @ts-nocheck
-import Route from './Route.astro';
-import Live from './Live.astro';
+import Route from "./Route.astro";
+import Live from "./Live.astro";
 ---
 
 <nav>
-    <ul>
-        <li class="nav-item liveBtn">
-            <Live />
-        </li>
-        <li class="nav-item routeBtn active">
-            <Route />
-        </li>
-    </ul>
+	<ul>
+		<li class="nav-item routeBtn active">
+			<Route />
+		</li>
+	</ul>
 </nav>
 
 <div id="routes-result"></div>
 <div id="live-result"></div>
 
 <script>
-    // @ts-nocheck
-    const navItems = document.querySelectorAll(".nav-item");
-    const ul = document.querySelector("nav > ul");
+	// The code here is for navigation in the bottom of the panel. This is not activated, but can be activated when using multiple navigation items. This can be used to further enhance the navigation panel
+	// @ts-nocheck
+	const navItems = document.querySelectorAll(".nav-item");
+	const ul = document.querySelector("nav > ul");
 
-    const moveBackground = (activeItem) => {
-        if (!activeItem || !ul) return;
+	const moveBackground = (activeItem) => {
+		if (!activeItem || !ul) return;
 
-        const left = activeItem.offsetLeft;
-        const width = activeItem.offsetWidth;
+		const left = activeItem.offsetLeft;
+		const width = activeItem.offsetWidth;
 
-        ul.style.setProperty("--bg-left", `${left}px`);
-        ul.style.setProperty("--bg-width", `${width}px`);
+		ul.style.setProperty("--bg-left", `${left}px`);
+		ul.style.setProperty("--bg-width", `${width}px`);
 
-        // const for every item in nav to give styles based on ".active"
-        const routeTab = document.querySelector(".tabRoute");
-        const liveTab = document.querySelector(".tabLive");
-        const isRoute = activeItem.classList.contains("routeBtn");
+		// const for every item in nav to give styles based on ".active"
+		const routeTab = document.querySelector(".tabRoute");
+		const liveTab = document.querySelector(".tabLive");
+		const isRoute = activeItem.classList.contains("routeBtn");
 
+		// If the active item "isRoute" is true, then first style will apply. Otherwise the second style will apply
+		if (routeTab && liveTab) {
+			routeTab.style.opacity = isRoute ? "1" : "0";
+			routeTab.style.visibility = isRoute ? "visible" : "hidden";
+			routeTab.style.top = isRoute ? "0em" : "20em";
 
-        // If the active item "isRoute" is true, then first style will apply. Otherwise the second style will apply
-    if (routeTab && liveTab) {
-        routeTab.style.opacity = isRoute ?  "1" : "0";
-        routeTab.style.visibility = isRoute ? "visible" : "hidden";
-        routeTab.style.top = isRoute ? "0em" : "20em";
+			liveTab.style.opacity = isRoute ? "0" : "1";
+			liveTab.style.visibility = isRoute ? "hidden" : "visible";
+			liveTab.style.top = isRoute ? "20em" : "0em";
+		}
+	};
 
-        liveTab.style.opacity = isRoute ?  "0" : "1";
-        liveTab.style.visibility = isRoute ?  "hidden" : "visible";
-        liveTab.style.top = isRoute ? "20em" : "0em";
-    }
-    }
+	const inBackground = () => {
+		const activeItem = document.querySelector(".nav-item.active");
+		moveBackground(activeItem);
+	};
 
-    const inBackground = () => {
-        const activeItem = document.querySelector(".nav-item.active");
-        moveBackground(activeItem);
-    }
+	// inBackground will work when page is loading, resizing or when astro page load event is triggered
+	// astro:page-load
+	// https://stackoverflow.com/questions/78780819/astro-page-load-event-is-triggered-in-other-page
+	inBackground();
+	window.addEventListener("load", inBackground);
+	window.addEventListener("resize", inBackground);
+	document.addEventListener("astro:page-load", inBackground);
 
-    // inBackground will work when page is loading, resizing or when astro page load event is triggered
-    // astro:page-load
-    // https://stackoverflow.com/questions/78780819/astro-page-load-event-is-triggered-in-other-page
-    inBackground();
-        window.addEventListener("load", inBackground);
-        window.addEventListener("resize", inBackground);
-        document.addEventListener("astro:page-load", inBackground);
+	setTimeout(() => {
+		ul.classList.add("glowBox");
+	}, 800);
 
-    setTimeout(() => {
-        ul.classList.add("glowBox");
-    }, 800);
+	navItems.forEach((item) => {
+		item.addEventListener("click", () => {
+			ul?.classList.remove("glowBox");
 
-    navItems.forEach(item => {
-        item.addEventListener("click", () => {
-            ul?.classList.remove("glowBox");
+			navItems.forEach((i) => i.classList.remove("active"));
+			item.classList.add("active");
 
-            navItems.forEach(i => i.classList.remove("active"));
-            item.classList.add("active");
+			moveBackground(item);
 
-            moveBackground(item);
+			setTimeout(() => {
+				ul.classList.add("glowBox");
+			}, 800);
+		});
+	});
 
-            setTimeout(() => {
-                ul.classList.add("glowBox");
-            }, 800);
-        });
-    });
+	let isDragging = false;
+	let startX = 0;
+	let startLeft = 0;
+	let hasMoved = false;
 
-    let isDragging = false;
-    let startX = 0;
-    let startLeft = 0;
-    let hasMoved = false;
+	ul?.addEventListener("pointerdown", (e) => {
+		isDragging = true;
+		hasMoved = false;
+		startX = e.clientX;
 
-    ul?.addEventListener("pointerdown", (e) => {
-        isDragging = true;
-        hasMoved = false;
-        startX = e.clientX;
+		const currentLeft = ul.style.getPropertyValue("--bg-left");
+		const activeBtn = document.querySelector(".nav-item.active");
+		startLeft = parseFloat(currentLeft) || (activeBtn ? activeBtn.offsetLeft : 0);
+	});
 
-        const currentLeft = ul.style.getPropertyValue("--bg-left");
-        const activeBtn = document.querySelector(".nav-item.active");
-        startLeft = parseFloat(currentLeft) || (activeBtn ? activeBtn.offsetLeft : 0);
-    });
+	ul?.addEventListener("pointermove", (e) => {
+		if (!isDragging) return;
 
-    ul?.addEventListener("pointermove", (e) => {
-        if (!isDragging) return;
+		const deltaX = e.clientX - startX;
 
-        const deltaX = e.clientX - startX;
+		// Using deltaX > 5 || deltaX < -5 to ensure the small movement does not trigger the dragging state and conflicts.
+		if (deltaX > 5 || deltaX < -5) {
+			// If the item did not move, the hasMove let will be true and dragging class will be removed
+			if (!hasMoved) {
+				hasMoved = true;
+				ul.classList.remove("glowBox");
+				ul.classList.add("dragging");
 
-        // Using deltaX > 5 || deltaX < -5 to ensure the small movement does not trigger the dragging state and conflicts.
-        if (deltaX > 5 || deltaX < -5) {
-            // If the item did not move, the hasMove let will be true and dragging class will be removed
-            if (!hasMoved) {
-            hasMoved = true;
-            ul.classList.remove("glowBox");
-            ul.classList.add("dragging");
+				// Browser keeps following the pointer even if it goes outside the element
+				ul.setPointerCapture(e.pointerId);
+			}
 
-            // Browser keeps following the pointer even if it goes outside the element
-            ul.setPointerCapture(e.pointerId);
-        }
+			// Calculate new let position based on pointer movement
+			let newLeft = startLeft + deltaX;
 
-        // Calculate new let position based on pointer movement
-        let newLeft = startLeft + deltaX;
+			const firstLeft = navItems[0].offsetLeft;
+			const lastLeft = navItems[navItems.length - 1].offsetLeft;
+			if (newLeft < firstLeft) newLeft = firstLeft;
+			if (newLeft > lastLeft) newLeft = lastLeft;
 
-        const firstLeft = navItems[0].offsetLeft;
-        const lastLeft = navItems[navItems.length - 1].offsetLeft;
-        if (newLeft < firstLeft) newLeft = firstLeft;
-        if (newLeft > lastLeft) newLeft = lastLeft;
+			ul.style.setProperty("--bg-left", `${newLeft}px`);
+		}
+	});
 
+	ul?.addEventListener("pointerup", (e) => {
+		if (!isDragging) return;
+		isDragging = false;
 
-        ul.style.setProperty("--bg-left", `${newLeft}px`);
-    }
-    });
+		if (hasMoved) {
+			ul.classList.remove("dragging");
+			ul.releasePointerCapture(e.pointerId);
 
-    ul?.addEventListener("pointerup", (e) => {
-        if (!isDragging) return;
-        isDragging = false;
+			// The background will snap to the closest item when released
+			const currentLeft = parseFloat(ul.style.getPropertyValue("--bg-left")) || 0;
+			// closestItem here is the navItem that is closest to the current background
+			let closestItem = navItems[0];
+			let minDiff = Infinity;
 
-        if (hasMoved) {
+			navItems.forEach((item) => {
+				const diff = Math.abs(currentLeft - item.offsetLeft);
+				if (diff < minDiff) {
+					minDiff = diff;
+					closestItem = item;
+				}
+			});
 
-        ul.classList.remove("dragging");
-        ul.releasePointerCapture(e.pointerId);
+			navItems.forEach((i) => i.classList.remove("active"));
+			closestItem.classList.add("active");
+			moveBackground(closestItem);
 
-        // The background will snap to the closest item when released
-        const currentLeft = parseFloat(ul.style.getPropertyValue("--bg-left")) || 0;
-        // closestItem here is the navItem that is closest to the current background
-        let closestItem = navItems[0];
-        let minDiff = Infinity;
-        
-        navItems.forEach(item => {
-            const diff = Math.abs(currentLeft - item.offsetLeft);
-            if (diff < minDiff) {
-                minDiff = diff;
-                closestItem = item;
-            }
-        });
-
-        navItems.forEach(i => i.classList.remove("active"));
-        closestItem.classList.add("active");
-        moveBackground(closestItem);
-
-        setTimeout(() => {
-            ul?.classList.add("glowBox");
-        }, 800);
-        }
-
-        
-    });
+			setTimeout(() => {
+				ul?.classList.add("glowBox");
+			}, 800);
+		}
+	});
 </script>
 
 <style>
-    nav {
-        /* background-color: rgba(0, 0, 0, 0.5); */
-        border-radius: 12px;
-        width: 90%;
-        margin: 0 auto;
+	nav {
+		/* background-color: rgba(0, 0, 0, 0.5); */
+		border-radius: 12px;
+		width: 90%;
+		margin: 0 auto;
 
-        > ul {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: row;
-            gap: 2em;
+		> ul {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			flex-direction: row;
+			gap: 2em;
 
-            margin: 0;
-            padding: 0;
-            position: relative;
-            z-index: 1;
-            /* Prevents browser from horizontal scroll */
-            touch-action: pan-y;
-            cursor: grab;
+			margin: 0;
+			padding: 0;
+			position: relative;
+			z-index: 1;
+			/* Prevents browser from horizontal scroll */
+			touch-action: pan-y;
+			cursor: grab;
 
-            transition: left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+			transition:
+				left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+				width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
 
-            &::before {
-                content: "";
-                position: absolute;
-                top: 0;
-                left: var(--bg-left, 0);
-                width: var(--bg-width, 0);
-                height: 100%;
-                background-color: rgba(211, 211, 211, 0.4);
-                border-radius: 32px;
-                z-index: -1;
-                /* transition: left 0.3s ease, width 0.3s ease; */
-                transition: left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18), width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+			&::before {
+				content: "";
+				position: absolute;
+				top: 0;
+				left: var(--bg-left, 0);
+				width: var(--bg-width, 0);
+				height: 100%;
+				background-color: rgba(211, 211, 211, 0.4);
+				border-radius: 32px;
+				z-index: -1;
+				/* transition: left 0.3s ease, width 0.3s ease; */
+				transition:
+					left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
+					width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+			}
 
-            }
+			&.glowBox::before {
+				animation: navBackgroundGlow 0.8s ease-in-out forwards;
+			}
 
-            &.glowBox::before {
-                animation: navBackgroundGlow 0.8s ease-in-out forwards;
-            }
+			&.dragging {
+				cursor: grabbing;
+			}
 
-            &.dragging {
-                cursor: grabbing;
-            }
+			&.dragging::before {
+				transition: none !important;
+			}
 
-            &.dragging::before {
-                transition: none !important;
-            }
+			> li {
+				color: white;
+				list-style-type: none;
+				padding: 1em 2em;
+				font-size: 20px;
+				border-radius: 8px;
+				user-select: none;
+				transform-origin: center;
+				text-shadow: none;
+				cursor: pointer;
 
-            > li {
-                color: white;
-                list-style-type: none;
-                padding: 1em 2em;
-                font-size: 20px;
-                border-radius: 8px;
-                user-select: none;
-                transform-origin: center;
-                text-shadow: none;
-                cursor: pointer;
+				transition: transform 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
 
-                transition: transform 1.2s cubic-bezier(0.33, 0.72, 0, 1.18);
+				&.active {
+					color: white;
+					transform: scale(1.5);
+					text-shadow: 0 20px 10px rgba(255, 255, 255, 0.5);
+				}
 
-                &.active {
-                    color: white;
-                    transform: scale(1.5);
-                    text-shadow: 0 20px 10px rgba(255, 255, 255, 0.5);
-                }
-                
+				> button {
+					border: none;
+					background: none;
+					color: inherit;
+					font-size: inherit;
+					cursor: pointer;
+				}
+			}
+		}
+	}
 
-                > button {
-                    border: none;
-                    background: none;
-                    color: inherit;
-                    font-size: inherit;
-                    cursor: pointer;
-                }
-            }
-        }
-    }
-
-    @keyframes navBackgroundGlow {
-        0% {
-            box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
-        }
-        100% {
-            box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
-        }
-    }
+	@keyframes navBackgroundGlow {
+		0% {
+			box-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
+		}
+		100% {
+			box-shadow: 0 0 30px rgba(255, 255, 255, 0.4);
+		}
+	}
 </style>
