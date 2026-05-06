@@ -160,9 +160,30 @@ export async function GET() {
 }
 </details>
 
+## Dag 6
 
+verder gewerkt en meer functionaliteiten toegevoegd. Zo ook de "transit" op de kaart gerwerkt met de verkregen lat en lon. Verdere uitwerking van de layout van de panel en het tweaken van de animaties.
+
+## Dag 7
+
+De transit locatie weergeven op basis van de search. Als de gebruiker de lijn heeft gezocht komt de lijn tevoorschijn. hierdoor verminder io de clutter op het scherm. ook neemt de API call dan af en zal er geen fetching limit overtreden worden.
+
+## Dag 7
+
+De transit wordt steeds opnieuw opgehaald uit de API door de polling. De functie vraagt om de bepaalde tijd naar een fetch en haalt zo nieuwe locaties op van de transit.
+
+# Progress
+
+Allereerst heb ik gekeken naar de API's en heb gebasseerd daarop nagedacht over mogelijke websites ermee. Ik heb hierbij ook nagedacht aan mijn eigen gebruik en waar ik tegen aan loop, zodat de website ook gelijk voor mijzelf gebruikt kan worden. Ik heb ervoor gekozen om live en statische data van de OV api te nemen. Hiermee kan ik live de locaties van het OV bekijken en ook statisch de locaties van de haltes. Dit kan ik gebruiken, omdat ik zo kan zien hoever het OV is.
+
+Ik heb alseerst een itteratie gemaakt, waarbij er leaflet map als kaart wordt gebruikt en een panel onderin het scherm. De panel kan dienen als zoekveld voor het zoeken naar de gewenste OV. De panel heb ik daarom veel geanimeerd en transities toegevoegd. 
+Ook heb ik een legend en userLocation knop bij toegevoegd, op deze manier kan de gebruiker snel vinden wat de icoontjes op het scherm betekenen. De userLocation zorgt ervoor dat de gebruiker direct naar de locatie kan vliegen, waar de gebruiker zich bevindt. Ook is de userLocation op de kaart te vinden en klikbaar. Daarnaast zijn er 2 soorten styling voor de userLocation. Als de gps zwak is wordt de cirkel groter, en bij een sterk signaal wordt de circkel klein. 
+
+Echter heb ik van de docent feedback gekregen hierop en heb ik nieuwe aanpassingen gemaakt gebasseere op de feedback. Deze layout changes zijn last minute en zal de website drastisch veranderen. De vernadering heeft er vooral mee te maken dat de gebruiker begint met het invullen van de search en daarna pas op de kaart komt. Op dese manier ziet de gebruiker direct de transit die de gebruiker zoekt.
+Ook het toevoegen van een filter knop voor de weergave van de stops op de kaart heb ik toegevoegd. Hierbij komen de stops niet direct zichtbaar, pas als de gebruiker de knop klikt.
 
 ## Bronnen
+(Meeste bronnen staan bij de code in comments)
 
 ### Leaflet gebruik voor installeren van leaflet en aanpassen van kaart eigenschappen
 [leaflet](https://leafletjs.com/download.html)
