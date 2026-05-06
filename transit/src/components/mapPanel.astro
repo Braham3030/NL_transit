@@ -2,13 +2,15 @@
 import Navigation from './Navigation.astro';
 import RouteTransitList from './RouteTransitList.astro';
 import LiveTransitList from './LiveTransitList.astro';
+import Header from './Header.astro';
 ---
 
 <div id="bottomPanel" class="panelBox">
-    <span id="panelHandleContainer">
+    <Header />
+    <!-- <span id="panelHandleContainer">
         <span class="panelHandle"></span>
         <span class="panelHandle"></span>
-    </span>
+    </span> -->
     <div class="searchBoxContainer">
     <label for="Search" class="searchBox">
         <input type="text" id="Search" placeholder="" autocorrect="off" list="searchOptions">
@@ -50,9 +52,9 @@ import LiveTransitList from './LiveTransitList.astro';
         isOpen = !isOpen;
 
         if (isOpen) {
-            panel.classList.add("open");
+            panel.classList.add("close");
         } else {
-            panel.classList.remove("open");
+            panel.classList.remove("close");
         }
     }
 
@@ -175,10 +177,10 @@ import LiveTransitList from './LiveTransitList.astro';
 
         if (currentHeight > threshold) {
             isOpen = true;
-            panel.classList.add("open");
+            panel.classList.add("close");
         } else {
             isOpen = false;
-            panel.classList.remove("open");
+            panel.classList.remove("close");
         }
 
 
@@ -231,7 +233,7 @@ import LiveTransitList from './LiveTransitList.astro';
         if (!panel) return;
 
         isOpen = false;
-        panel.classList.remove("open");
+        panel.classList.remove("close");
 
         // The styling for the "open" state will be removed and defaulted to the styles in css
         panel.style.height = "";
@@ -268,7 +270,7 @@ import LiveTransitList from './LiveTransitList.astro';
                     document.dispatchEvent(searchResults);
 
                     isOpen = false;
-                    panel.classList.remove("open");
+                    panel.classList.add("close");
 
                     panel.style.height = "";
                     panel.style.width = "";
@@ -287,7 +289,7 @@ import LiveTransitList from './LiveTransitList.astro';
 
         if (transitLat && transitLon) {
             isOpen = false;
-            panel.classList.remove("open");
+            panel.classList.remove("close");
 
             panel.style.height = "";
             panel.style.width = "";
@@ -348,21 +350,21 @@ import LiveTransitList from './LiveTransitList.astro';
         justify-content: flex-start;
         flex-direction: column;
         position: absolute;
-        bottom: 2em;
+        bottom: 0em;
         left: 50%;
         transform: translate(-50%, 150%) scale(0.5);
-        width: 90vw;
-        height: 12vh;
+        width: 100vw;
+        height: 100vh;
 
         background-color: rgba(0, 0, 0, 0.8);
         box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(8px);
+        backdrop-filter: blur(16px);
         
-        border-radius: 36px;
+        /* border-radius: 36px 36px 0 0; */
         overflow: hidden;
 
         margin: 0;
-        padding: 0;
+        padding: 1.5rem;
 
         animation: slideInBottom 1s cubic-bezier(0.33, 0.72, 0, 1.18) 0.5s forwards;
 
@@ -384,7 +386,7 @@ import LiveTransitList from './LiveTransitList.astro';
             transition: top 0.2s cubic-bezier(0.33, 0.72, 0, 1.18), left 0.2s cubic-bezier(0.33, 0.72, 0, 1.18);
         }
 
-        > #panelHandleContainer {
+        /* > #panelHandleContainer {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -422,20 +424,20 @@ import LiveTransitList from './LiveTransitList.astro';
             cursor: grabbing;
         }
     }
-    }
+    } */
     }
 
-    .panelBox.open {
-        border-radius: 20px 20px 0 0;
-        bottom: 0;
-        width: 100vw;
-        height: 80vh;
+    .panelBox.close {
+        border-radius: 36px;
+        bottom: 2em;
+        width: 95vw;
+        height: 10vh;
 
         background-color: rgba(0, 0, 0, 0.8);
         box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 2px 20px rgba(0, 0, 0, 0.5);
-        backdrop-filter: blur(15px);
+        backdrop-filter: blur(6px);
 
-        > #panelHandleContainer {
+        /* > #panelHandleContainer {
             height: 3em;
 
         > span:first-of-type {
@@ -479,7 +481,7 @@ import LiveTransitList from './LiveTransitList.astro';
             
         }
             
-        }
+        } */
 
     }
 
@@ -490,7 +492,7 @@ import LiveTransitList from './LiveTransitList.astro';
     }
 
     .searchBoxContainer {
-        width: 90%;
+        width: 100%;
         display: flex;
         align-items: center;
         justify-content: flex-start;
@@ -598,16 +600,16 @@ import LiveTransitList from './LiveTransitList.astro';
         }
 
         &:has(#Search:focus) .panelBox {
-            border-radius: 20px 20px 0 0;
+            /* border-radius: 20px 20px 0 0;
             bottom: 0;
             width: 100vw;
             height: 80vh;
 
             background-color: rgba(0, 0, 0, 0.8);
             box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.8), 0 2px 20px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px); */
 
-            > #panelHandleContainer {
+            /* > #panelHandleContainer {
                 height: 3em;
 
              > span:first-of-type {
@@ -628,12 +630,12 @@ import LiveTransitList from './LiveTransitList.astro';
                 background-color: rgba(0, 0, 0, 1);
                 box-shadow: 0 2px 20px rgba(255, 255, 255, 0.8);
             }
-        }
+        } */
 
             > .searchBoxContainer {
-                width: 90%;
-                margin-top: 4em;
-                margin-bottom: 2em;
+                width: 100%;
+                /* margin-top: 4em;
+                margin-bottom: 2em; */
 
             > .searchBox {
                 width: 100%;

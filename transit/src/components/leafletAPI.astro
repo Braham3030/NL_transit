@@ -370,6 +370,17 @@ import L from 'leaflet';
     }, 500);
 }
 
+// Push all transit stops to the filterButton using customEvent
+
+// routeInfoForZoom.sort((a, b) => a.distance - b.distance);
+
+//         document.dispatchEvent(new CustomEvent('liveLocationUpdate', {
+//             detail: {
+//                 transitInfo: routeInfoForZoom
+//             }
+//         }));
+
+
 
     async function fetchRoutes() {
         const RouteApiUrl = `/api/Routes`;
