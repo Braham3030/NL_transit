@@ -9,7 +9,10 @@ import Header from "./Header.astro";
 		<span>Back to search</span>
 	</button>
 </div>
-<div id="bottomPanel" class="panelBox">
+<div id="bottomPanel" class="panelBox entering">
+	<div id="panelHandleContainer">
+		<span class="panelHandle"></span>
+	</div>
 	<Header />
 	<div class="searchBoxContainer">
 		<label for="Search" class="searchBox">
@@ -79,10 +82,12 @@ import Header from "./Header.astro";
 	const closeBtn = document.querySelector(".closeBtn");
 	const searchElement = document.getElementById("Search");
 
-	closeBtn?.addEventListener("click", () => {
+	closeBtn?.addEventListener("click", (e) => {
+		e?.stopPropagation();
 		if (!panel) return;
 
 		isOpen = false;
+		panel.classList.remove("overlay");
 		panel.classList.add("close");
 
 		// The styling for the "open" state will be removed and defaulted to the styles in css
@@ -131,11 +136,14 @@ import Header from "./Header.astro";
 
 		if (transitLat && transitLon) {
 			isOpen = false;
-			panel.classList.add("close");
+			panel?.classList.remove("overlay");
+			panel?.classList.add("close");
 
-			panel.style.height = "";
-			panel.style.width = "";
-			panel.style.opacity = "";
+			if (panel) {
+				panel.style.height = "";
+				panel.style.width = "";
+				panel.style.opacity = "";
+			}
 		}
 	});
 
@@ -179,17 +187,323 @@ import Header from "./Header.astro";
 		});
 	}
 
-	// back Button opening panel
+	// When clicking searchbar in closed state, expand into OVERLAY mode
+	const openOverlay = (e) => {
+		if (!panel) return;
+		if (panel.classList.contains("close")) {
+			e?.stopPropagation();
+			isOpen = true;
+			panel.classList.remove("close");
+			panel.classList.add("overlay");
+			panel.style.height = "";
+			panel.style.width = "";
+			panel.style.bottom = "";
+			searchElement?.focus();
+		}
+	};
 
-	const backBtn = document.querySelector(".backBtn");
+	searchElement?.addEventListener("focus", openOverlay);
+	searchElement?.addEventListener("click", openOverlay);
+	searchBoxContainer?.addEventListener("click", openOverlay);
 
-	backBtn.addEventListener("click", () => {
+	// Handle dragging logic (up and down)
+	const userLocationBtn = document.querySelector(".userLocationBtn");
+	const legend = document.querySelector(".Legend");
+
+	let startY = 0;
+	let startHeight = 0;
+	let hasMoved = false;
+
+	handle?.addEventListener("pointerdown", (e) => {
+		if (!panel) return;
+
+		isDragging = true;
+		hasMoved = false;
+		startY = e.clientY;
+		startHeight = panel.getBoundingClientRect().height;
+
+		panel.style.transition = "none";
+		document.body.classList.add("is-dragging-panel");
+
+		if (window.innerWidth < 800) {
+			if (userLocationBtn) {
+				userLocationBtn.style.setProperty("transition", "none", "important");
+			}
+			if (legend) {
+				legend.style.setProperty("transition", "none", "important");
+			}
+		}
+
+		handle.setPointerCapture(e.pointerId);
+	});
+
+	window.addEventListener("pointermove", (e) => {
+		if (!isDragging || !panel) return;
+
+		const deltaY = startY - e.clientY;
+		if (Math.abs(deltaY) > 3) {
+			hasMoved = true;
+		}
+
+		let newHeight = startHeight + deltaY;
+		const windowHeight = window.innerHeight;
+
+		const minHeight = 85;
+		const maxHeight = window.innerWidth >= 1200 ? windowHeight - 16 : windowHeight;
+
+		if (newHeight < minHeight) newHeight = minHeight;
+		if (newHeight > maxHeight) newHeight = maxHeight;
+
+		panel.style.height = `${newHeight}px`;
+
+		const overlayHeight = windowHeight * 0.52;
+
+		// Morph panel dimensions on mobile continuously between overlay and full screen
+		if (window.innerWidth < 800) {
+			if (newHeight > overlayHeight) {
+				const progress = Math.max(0, Math.min(1, (newHeight - overlayHeight) / (maxHeight - overlayHeight)));
+				panel.style.width = `${92 + 8 * progress}vw`;
+				panel.style.bottom = `${1.5 * (1 - progress)}em`;
+				panel.style.borderRadius = `${28 * (1 - progress)}px`;
+				panel.style.padding = `${0.3 + 1.2 * progress}rem 1rem ${0.6 + 0.9 * progress}rem 1rem`;
+			} else {
+				panel.style.width = "92vw";
+				panel.style.bottom = "1.5em";
+				panel.style.borderRadius = "28px";
+				panel.style.padding = "0.3em 1rem 0.6em 1rem";
+			}
+		}
+
+		// Adjust classes for styling feedback while dragging:
+		// Switch class at overlayHeight so the transition is 100% seamless
+		if (newHeight <= overlayHeight) {
+			panel.classList.remove("close");
+			panel.classList.add("overlay");
+		} else {
+			panel.classList.remove("close");
+			panel.classList.remove("overlay");
+		}
+
+		// Animate header and "Run for your transit" text out up when dragging down towards overlay/close
+		const headerEl = panel.querySelector("header");
+		const headerH1 = panel.querySelector("header > h1");
+		if (headerEl && headerH1) {
+			if (newHeight <= overlayHeight) {
+				headerH1.style.setProperty("transform", "translateY(-100%)", "important");
+				headerH1.style.setProperty("opacity", "0", "important");
+				headerEl.style.setProperty("height", "0px", "important");
+				headerEl.style.setProperty("opacity", "0", "important");
+			} else {
+				const headerProgress = Math.max(0, Math.min(1, (newHeight - overlayHeight) / (windowHeight * 0.8 - overlayHeight)));
+				headerH1.style.setProperty("transform", `translateY(${- (1 - headerProgress) * 100}%)`, "important");
+				headerH1.style.setProperty("opacity", `${headerProgress}`, "important");
+				headerEl.style.setProperty("height", `${headerProgress * 5}em`, "important");
+				headerEl.style.setProperty("opacity", `${headerProgress}`, "important");
+			}
+		}
+
+		// Smoothly collapse and fade navigationContainer (Routes button) when dragging down towards overlay
+		const navContainer = panel.querySelector(".navigationContainer");
+		if (navContainer) {
+			if (newHeight <= overlayHeight) {
+				navContainer.style.setProperty("opacity", "0", "important");
+				navContainer.style.setProperty("visibility", "hidden", "important");
+				navContainer.style.setProperty("height", "0px", "important");
+				navContainer.style.setProperty("padding-bottom", "0px", "important");
+				navContainer.style.setProperty("margin", "0px", "important");
+			} else {
+				const navProgress = Math.max(0, Math.min(1, (newHeight - overlayHeight) / (windowHeight * 0.85 - overlayHeight)));
+				navContainer.style.setProperty("opacity", `${navProgress}`, "important");
+				navContainer.style.setProperty("visibility", navProgress > 0 ? "visible" : "hidden", "important");
+				navContainer.style.setProperty("height", `${navProgress * 5}em`, "important");
+				navContainer.style.setProperty("padding-bottom", `${navProgress * 5}em`, "important");
+			}
+		}
+
+		// Searchbox margins follow drag continuously
+		const searchContainer = panel.querySelector(".searchBoxContainer");
+		if (searchContainer) {
+			if (newHeight <= overlayHeight) {
+				const closeProg = Math.max(0, Math.min(1, (newHeight - minHeight) / (overlayHeight - minHeight)));
+				searchContainer.style.setProperty("margin-top", "0px", "important");
+				searchContainer.style.setProperty("margin-bottom", `${closeProg * 0.5}em`, "important");
+			} else {
+				const openProg = Math.max(0, Math.min(1, (newHeight - overlayHeight) / (maxHeight - overlayHeight)));
+				searchContainer.style.setProperty("margin-top", `${openProg * 0.8}em`, "important");
+				searchContainer.style.setProperty("margin-bottom", `${0.5 + openProg * 0.3}em`, "important");
+			}
+		}
+
+		// Fade out tabRoute (routes/transit list) when dragging down below overlay towards close
+		const tabRoute = document.querySelector(".tabRoute");
+		if (tabRoute) {
+			if (newHeight <= overlayHeight) {
+				const tabFade = Math.max(0, Math.min(1, (newHeight - (minHeight + 35)) / (overlayHeight - (minHeight + 35))));
+				tabRoute.style.opacity = `${tabFade}`;
+				tabRoute.style.visibility = tabFade > 0 ? "visible" : "hidden";
+			} else {
+				tabRoute.style.opacity = "1";
+				tabRoute.style.visibility = "visible";
+			}
+		}
+
+		// On mobile, keep Legend and userLocationBtn tracking the panel drag in real time
+		if (window.innerWidth < 800) {
+			const closeBtnBottom = parseFloat(getComputedStyle(document.documentElement).fontSize || "16") * 12;
+			const closeLegendBottom = windowHeight * 0.13;
+			const overlayBtnBottom = windowHeight * 0.64;
+			const overlayLegendBottom = windowHeight * 0.54;
+			const hiddenBottom = -parseFloat(getComputedStyle(document.documentElement).fontSize || "16") * 5;
+
+			let currentBtnBottom = overlayBtnBottom;
+			let currentLegendBottom = overlayLegendBottom;
+			let currentOpacity = 1;
+
+			if (newHeight <= overlayHeight) {
+				const progress = Math.max(0, Math.min(1, (newHeight - minHeight) / (overlayHeight - minHeight)));
+				currentBtnBottom = closeBtnBottom + (overlayBtnBottom - closeBtnBottom) * progress;
+				currentLegendBottom = closeLegendBottom + (overlayLegendBottom - closeLegendBottom) * progress;
+			} else {
+				// Moving from .overlay to normal .panelBox ("nop"):
+				// Animate/slide to the bottom out of sight!
+				const progressToNormal = Math.max(0, Math.min(1, (newHeight - overlayHeight) / (windowHeight - overlayHeight)));
+				currentBtnBottom = overlayBtnBottom + (hiddenBottom - overlayBtnBottom) * progressToNormal;
+				currentLegendBottom = overlayLegendBottom + (hiddenBottom - overlayLegendBottom) * progressToNormal;
+				currentOpacity = Math.max(0, 1 - progressToNormal * 1.5);
+			}
+
+			if (userLocationBtn) {
+				userLocationBtn.style.setProperty("bottom", `${currentBtnBottom}px`, "important");
+				userLocationBtn.style.setProperty("opacity", `${currentOpacity}`, "important");
+				userLocationBtn.style.setProperty("visibility", currentOpacity > 0 ? "visible" : "hidden", "important");
+			}
+			if (legend) {
+				legend.style.setProperty("bottom", `${currentLegendBottom}px`, "important");
+				legend.style.setProperty("opacity", `${currentOpacity}`, "important");
+				legend.style.setProperty("visibility", currentOpacity > 0 ? "visible" : "hidden", "important");
+			}
+		}
+	});
+
+	window.addEventListener("pointerup", (e) => {
+		if (!isDragging || !panel) return;
+		isDragging = false;
+
+		document.body.classList.remove("is-dragging-panel");
+
+		if (handle && handle.hasPointerCapture(e.pointerId)) {
+			handle.releasePointerCapture(e.pointerId);
+		}
+
+		const distanceMoved = Math.abs(startY - e.clientY);
+		const currentHeight = panel.getBoundingClientRect().height;
+		const windowHeight = window.innerHeight;
+
+		// Snap based on dragged height position or click
+		let targetState = "open";
+		if (!hasMoved || distanceMoved < 6) {
+			if (panel.classList.contains("close")) {
+				targetState = "overlay";
+			} else if (panel.classList.contains("overlay")) {
+				targetState = "open";
+			} else {
+				targetState = "close";
+			}
+		} else if (currentHeight < windowHeight * 0.28) {
+			targetState = "close";
+		} else if (currentHeight < windowHeight * 0.72) {
+			targetState = "overlay";
+		} else {
+			targetState = "open";
+		}
+
+		if (targetState === "close") {
+			panel.classList.remove("overlay");
+			panel.classList.add("close");
+			isOpen = false;
+		} else if (targetState === "overlay") {
+			panel.classList.remove("close");
+			panel.classList.add("overlay");
+			isOpen = true;
+		} else {
+			panel.classList.remove("close");
+			panel.classList.remove("overlay");
+			isOpen = true;
+		}
+
+		// Re-enable CSS transitions before removing inline styles
+		panel.style.transition = "";
+		void panel.offsetHeight;
+
+		// Clear inline drag overrides
+		panel.style.height = "";
+		panel.style.width = "";
+		panel.style.bottom = "";
+		panel.style.borderRadius = "";
+		panel.style.padding = "";
+
+		const tabRoute = document.querySelector(".tabRoute");
+		if (tabRoute) {
+			tabRoute.style.removeProperty("opacity");
+			tabRoute.style.removeProperty("visibility");
+		}
+
+		const headerEl = panel.querySelector("header");
+		const headerH1 = panel.querySelector("header > h1");
+		if (headerH1) {
+			headerH1.style.removeProperty("transform");
+			headerH1.style.removeProperty("opacity");
+		}
+		if (headerEl) {
+			headerEl.style.removeProperty("height");
+			headerEl.style.removeProperty("opacity");
+		}
+
+		const navContainer = panel.querySelector(".navigationContainer");
+		if (navContainer) {
+			navContainer.style.removeProperty("opacity");
+			navContainer.style.removeProperty("visibility");
+			navContainer.style.removeProperty("height");
+			navContainer.style.removeProperty("padding-bottom");
+			navContainer.style.removeProperty("margin");
+		}
+
+		const searchContainer = panel.querySelector(".searchBoxContainer");
+		if (searchContainer) {
+			searchContainer.style.removeProperty("margin-top");
+			searchContainer.style.removeProperty("margin-bottom");
+		}
+
+		if (userLocationBtn) {
+			userLocationBtn.style.removeProperty("transition");
+			void userLocationBtn.offsetHeight;
+			userLocationBtn.style.removeProperty("bottom");
+			userLocationBtn.style.removeProperty("opacity");
+			userLocationBtn.style.removeProperty("visibility");
+		}
+		if (legend) {
+			legend.style.removeProperty("transition");
+			void legend.offsetHeight;
+			legend.style.removeProperty("bottom");
+			legend.style.removeProperty("opacity");
+			legend.style.removeProperty("visibility");
+		}
+	});
+
+	panel?.addEventListener("animationend", (e) => {
+		if (e.animationName === "slideInBottom") {
+			panel.classList.remove("entering");
+		}
+	});
+
+	backBtn?.addEventListener("click", () => {
 		if (!panel) return;
 
 		isOpen = true;
 		setTimeout(() => {
 			panel.classList.remove("close");
-			backBtn.classList.add("backAnimation");
+			panel.classList.add("overlay");
+			backBtn?.classList.add("backAnimation");
 		}, 20);
 		panel.style.height = "";
 		panel.style.width = "";
@@ -216,7 +530,7 @@ import Header from "./Header.astro";
 			opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
 			visibility 0s cubic-bezier(0.33, 0.72, 0, 1.18) 0.8s;
 
-		> .backBtn {
+		/* > .backBtn {
 			padding: 1em;
 			border-radius: inherit;
 			background-color: rgba(0, 0, 0, 0.7);
@@ -230,15 +544,9 @@ import Header from "./Header.astro";
 				font-size: 24px;
 				font-weight: bold;
 			}
-		}
+		} */
 	}
 
-	body:has(.panelBox.close) .backBtnContainer {
-		z-index: 9999999;
-		opacity: 1;
-		visibility: visible;
-		transform: translate(-5%, -50%);
-	}
 
 	.panelBox {
 		z-index: 11111;
@@ -249,7 +557,7 @@ import Header from "./Header.astro";
 		position: absolute;
 		bottom: 0em;
 		left: 50%;
-		transform: translate(-50%, 150%);
+		transform: translate(-50%, 0);
 		width: 100vw;
 		height: 100vh;
 		opacity: 1;
@@ -258,20 +566,22 @@ import Header from "./Header.astro";
 		box-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
 		backdrop-filter: blur(16px);
 
+		border-radius: 0;
 		overflow: hidden;
 		margin: 0;
 		padding: 1.5rem;
 
-		animation: slideInBottom 1s cubic-bezier(0.33, 0.72, 0, 1.18) 1.2s forwards;
-
 		transition:
-			height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18),
-			bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
-			background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
-			left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+			height 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+			width 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+			bottom 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+			left 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+			transform 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+			border-radius 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+			padding 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+			background-color 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+			backdrop-filter 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+			opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1);
 
 		&::before {
 			content: "";
@@ -294,27 +604,74 @@ import Header from "./Header.astro";
 		}
 	}
 
+	#panelHandleContainer {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.5em 0 0.3em 0;
+		cursor: grab;
+		touch-action: none;
+		user-select: none;
+		z-index: 1000;
+	}
+
+	#panelHandleContainer:active {
+		cursor: grabbing;
+	}
+
+	.panelHandle {
+		width: 3.5em;
+		height: 0.3em;
+		background-color: #ffffff;
+		border-radius: 10px;
+		box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+		pointer-events: none;
+		transition: width 0.3s ease, background-color 0.3s ease;
+	}
+
+	#panelHandleContainer:hover .panelHandle {
+		width: 4.5em;
+	}
+
+	.panelBox.entering {
+		animation: slideInBottom 1s cubic-bezier(0.33, 0.72, 0, 1.18) 0.6s forwards;
+	}
+
 	.panelBox.close {
-		bottom: 0;
-		width: 100vw;
-		height: 0vh;
-		opacity: 0 !important;
+		bottom: 1.5em;
+		left: 50%;
+		transform: translate(-50%, 0);
+		width: 92vw;
+		height: 5.6em;
+		border-radius: 28px;
+		padding: 0.3em 1rem 0.6em 1rem;
+		justify-content: flex-start;
+		opacity: 1 !important;
 
-		background-color: rgba(0, 0, 0, 0.8);
+		background-color: rgba(0, 0, 0, 0.85);
 		box-shadow:
-			0 0 0 1px rgba(0, 0, 0, 0.8),
-			0 2px 20px rgba(0, 0, 0, 0.5);
-		backdrop-filter: blur(6px);
+			0 0 0 1px rgba(255, 255, 255, 0.1),
+			0 4px 20px rgba(0, 0, 0, 0.5);
+		backdrop-filter: blur(16px);
+	}
 
-		transition:
-			height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			width 0.6s cubic-bezier(0.33, 0.72, 0, 1.18),
-			bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
-			background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
-			left 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
-		animation: none;
+	.panelBox.overlay {
+		bottom: 1.5em;
+		left: 50%;
+		transform: translate(-50%, 0);
+		width: 92vw;
+		height: 52vh;
+		border-radius: 28px;
+		padding: 0.3em 1rem 0.6em 1rem;
+		justify-content: flex-start;
+		opacity: 1 !important;
+
+		background-color: rgba(0, 0, 0, 0.85);
+		box-shadow:
+			0 0 0 1px rgba(255, 255, 255, 0.1),
+			0 4px 24px rgba(0, 0, 0, 0.6);
+		backdrop-filter: blur(16px);
 	}
 
 	/* Removal of default arrow icon */
@@ -324,29 +681,40 @@ import Header from "./Header.astro";
 	}
 
 	.searchBoxContainer {
-		width: 100%;
+		width: 0%;
 		display: flex;
 		align-items: center;
 		justify-content: flex-start;
 		color: rgba(0, 0, 0, 0.8);
-		border-radius: 24px;
+		border-radius: 12px;
 		margin-bottom: 1em;
-		margin-top: 1.6em;
+		margin-top: 1em;
 		position: relative;
+		overflow: hidden;
+
+		/* width: 0%;
+			border-radius: 12px;
+			margin-bottom: 1em;
+			margin-top: 1em;
+			overflow: hidden; */
+
+		animation: searchAnimationIn 0.8s cubic-bezier(0.33, 0.72, 0, 1.18) 0.6s forwards;
 
 		transition:
-			margin-bottom 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			margin-top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			border-radius 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			box-shadow 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+			margin-bottom 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+			margin-top 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+			width 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+			border-radius 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+			color 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+			box-shadow 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 
 		> .searchBox {
 			width: 100%;
 			border-radius: 24px;
 			position: relative;
 			background-color: rgba(0, 0, 0, 0.7);
+
+			transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1);
 
 			> #searchTextBox {
 				position: absolute;
@@ -516,6 +884,11 @@ import Header from "./Header.astro";
 	.navigationContainer {
 		width: 100%;
 		padding-bottom: 5em;
+		transition:
+			opacity 0.35s ease,
+			height 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+			padding-bottom 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+			margin 0.35s ease;
 	}
 
 	.tabRoute {
@@ -525,20 +898,110 @@ import Header from "./Header.astro";
 		opacity: 1;
 		visibility: visible;
 		flex: 1;
-		height: 100%;
+		min-height: 0;
+		width: 100%;
+		overflow-y: auto;
 		border-radius: 18px;
 
 		transition:
-			opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			top 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-			visibility 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+			opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+			visibility 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 	}
 
-	body:has(.panelBox.close) :is(.tabRoute, .navigationContainer, .searchBoxContainer) {
-		opacity: 0;
-		visibility: hidden;
-		user-select: none;
-		z-index: -1;
+	body:has(.panelBox.close) header,
+	.panelBox.close > header,
+	body:has(.panelBox.overlay) header,
+	.panelBox.overlay > header {
+		height: 0 !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		opacity: 0 !important;
+		overflow: hidden !important;
+		pointer-events: none !important;
+		visibility: hidden !important;
+		transition:
+			opacity 0.35s ease,
+			height 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	body:has(.panelBox.close) header > h1,
+	.panelBox.close > header > h1,
+	body:has(.panelBox.overlay) header > h1,
+	.panelBox.overlay > header > h1 {
+		transform: translateY(-100%) !important;
+		opacity: 0 !important;
+		transition:
+			transform 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+			opacity 0.35s ease !important;
+	}
+
+	body:has(.panelBox.close) :is(.tabRoute, .navigationContainer) {
+		opacity: 0 !important;
+		visibility: hidden !important;
+		user-select: none !important;
+		pointer-events: none !important;
+		z-index: -1 !important;
+		height: 0 !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		overflow: hidden !important;
+		transition:
+			opacity 0.35s ease,
+			height 0.55s cubic-bezier(0.25, 1, 0.5, 1);
+	}
+
+	.panelBox.close .searchBoxContainer {
+		opacity: 1 !important;
+		visibility: visible !important;
+		width: 100% !important;
+		margin-top: 0 !important;
+		margin-bottom: 0 !important;
+		z-index: 10 !important;
+		pointer-events: auto !important;
+		user-select: auto !important;
+	}
+
+	.panelBox.close .searchBoxContainer > .closeBtn {
+		display: none !important;
+		opacity: 0 !important;
+		pointer-events: none !important;
+	}
+
+	.panelBox.overlay .searchBoxContainer {
+		opacity: 1 !important;
+		visibility: visible !important;
+		width: 100% !important;
+		margin-top: 0 !important;
+		margin-bottom: 0.5em !important;
+		z-index: 10 !important;
+		pointer-events: auto !important;
+		user-select: auto !important;
+	}
+
+	.panelBox.overlay .tabRoute {
+		opacity: 1 !important;
+		visibility: visible !important;
+		flex: 1;
+		min-height: 0;
+		width: 100%;
+		overflow-y: auto;
+		transition: opacity 0.3s ease;
+	}
+
+	body:has(.panelBox.overlay) .navigationContainer,
+	.panelBox.overlay .navigationContainer {
+		opacity: 0 !important;
+		visibility: hidden !important;
+		height: 0 !important;
+		margin: 0 !important;
+		padding: 0 !important;
+		overflow: hidden !important;
+		pointer-events: none !important;
+		transition:
+			opacity 0.35s ease,
+			height 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+			padding-bottom 0.55s cubic-bezier(0.25, 1, 0.5, 1),
+			margin 0.35s ease !important;
 	}
 
 	@keyframes slideInBottom {
@@ -551,6 +1014,23 @@ import Header from "./Header.astro";
 			height: 100vh;
 			transform: translate(-50%, 0) scale(1);
 			opacity: 1;
+		}
+	}
+
+	@keyframes searchAnimationIn {
+		0% {
+			width: 0%;
+			border-radius: 12px;
+			margin-bottom: 1em;
+			margin-top: 1em;
+			overflow: hidden;
+		}
+		100% {
+			width: 100%;
+			border-radius: 24px;
+			margin-bottom: 1em;
+			margin-top: 1.6em;
+			overflow: visible;
 		}
 	}
 
@@ -580,20 +1060,43 @@ import Header from "./Header.astro";
 
 	@media (min-width: 1200px) {
 		.panelBox {
-			bottom: 0.5em;
+			bottom: 1em;
 			left: 14%;
-			transform: translate(-50%, 150%) scale(0.5);
+			transform: translate(-50%, 0);
 			width: 24vw;
+			height: calc(100vh - 2em);
+			border-radius: 28px;
+			padding: 0.3em 1rem 0.6em 1rem;
 
 			transition:
-				left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18),
-				width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-				height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-				bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
-				border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18),
-				background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-				backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
-				opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+				left 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+				width 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+				height 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+				bottom 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+				border-radius 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+				background-color 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+				backdrop-filter 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+				opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+		}
+
+		.panelBox.close {
+			bottom: 1em;
+			left: 14%;
+			transform: translate(-50%, 0);
+			width: 24vw;
+			height: 5.6em;
+			border-radius: 28px;
+			padding: 0.3em 1rem 0.6em 1rem;
+		}
+
+		.panelBox.overlay {
+			bottom: 1em;
+			left: 14%;
+			transform: translate(-50%, 0);
+			width: 24vw;
+			height: 52vh;
+			border-radius: 28px;
+			padding: 0.3em 1rem 0.6em 1rem;
 		}
 
 		.panelBox.open {
@@ -615,27 +1118,50 @@ import Header from "./Header.astro";
 		.panelBox {
 			bottom: 1em;
 			left: 18%;
-			transform: translate(-50%, 150%) scale(1);
+			transform: translate(-50%, 0);
 			width: 35vw;
+			height: calc(100vh - 2em);
+			border-radius: 28px;
+			padding: 0.3em 1rem 0.6em 1rem;
 
 			transition:
-				left 0.4s cubic-bezier(0.33, 0.72, 0, 1.18),
-				width 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-				height 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-				bottom 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
-				border-radius 2s cubic-bezier(0.33, 0.72, 0, 1.18),
-				background-color 0.8s cubic-bezier(0.33, 0.72, 0, 1.18),
-				backdrop-filter 1.2s cubic-bezier(0.33, 0.72, 0, 1.18),
-				opacity 0.8s cubic-bezier(0.33, 0.72, 0, 1.18);
+				left 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+				width 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+				height 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+				bottom 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+				border-radius 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+				background-color 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+				backdrop-filter 0.6s cubic-bezier(0.25, 1, 0.5, 1),
+				opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+		}
+
+		.panelBox.close {
+			bottom: 1em;
+			left: 18%;
+			transform: translate(-50%, 0);
+			width: 35vw;
+			height: 5.6em;
+			border-radius: 28px;
+			padding: 0.3em 1rem 0.6em 1rem;
+		}
+
+		.panelBox.overlay {
+			bottom: 1em;
+			left: 18%;
+			transform: translate(-50%, 0);
+			width: 35vw;
+			height: 52vh;
+			border-radius: 28px;
+			padding: 0.3em 1rem 0.6em 1rem;
 		}
 
 		.panelBox.open {
 			left: 18%;
-			width: 30vw;
+			width: 35vw;
 		}
 
 		&:has(#Search:focus) .panelBox {
-			width: 30vw;
+			width: 35vw;
 		}
 	}
 </style>

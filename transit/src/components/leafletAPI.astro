@@ -383,10 +383,15 @@ console.log("Leaflet API component loaded");
 			markerZoomAnimation: true,
 		});
 
-		L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-			attribution: "&copy; OpenStreetMap",
+		const mapTilerKey = import.meta.env.PUBLIC_mapTilerApiKey || import.meta.env.PUBLIC_MAPTILER_API_KEY;
+
+		L.tileLayer(`https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${mapTilerKey}`, {
+			tileSize: 512,
+			zoomOffset: -1,
 			minZoom: 7.5,
 			maxZoom: 19,
+			attribution: '\u003ca href="https://www.maptiler.com/copyright/" target="_blank"\u003e&copy; MapTiler\u003c/a\u003e \u003ca href="https://www.openstreetmap.org/copyright" target="_blank"\u003e&copy; OpenStreetMap contributors\u003c/a\u003e',
+			crossOrigin: true,
 		}).addTo(map);
 
 		map.setView([52.2, 5.5], 7.5);
